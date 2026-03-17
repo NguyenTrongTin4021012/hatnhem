@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hạt & Hẻm | Discover Your Coffee</title>
+    <style>
+        :root {
+            --primary: #2c3e2e; /* Deep Coffee Green */
+            --accent: #d4a373;  /* Bean Brown */
+            --bg: #fefae0;      /* Cream */
+            --text: #333;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        header { background: var(--primary); color: white; padding: 2rem; text-align: center; }
+        .container { max-width: 800px; margin: auto; padding: 2rem; }
+        
+        /* Quiz Styles */
+        #quiz-container { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn { background: var(--accent); border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; }
+        .hidden { display: none; }
+        
+        /* Discovery Cards */
+        .cafe-card { background: white; margin: 10px 0; padding: 15px; border-left: 5px solid var(--primary); border-radius: 5px; }
+        .tag { background: #e9edc9; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Hạt & Hẻm</h1>
+    <p>Decoding the Bean. Discovering the Alley.</p>
+</header>
+
+<div class="container">
+    <!-- Quiz Section -->
+    <div id="quiz-container">
+        <h2>Find Your Palate</h2>
+        <div id="question-box">
+            <p id="question-text">How do you like your favorite snack?</p>
+            <button class="btn" onclick="nextQuestion('Fruity', 'Citrus')">🍋 Fruity/Tart</button>
+            <button class="btn" onclick="nextQuestion('Bold', 'Chocolate')">🍫 Dark/Nutty</button>
+        </div>
+        <div id="result-box" class="hidden">
+            <h3>Your Profile: <span id="profile-name"></span></h3>
+            <p>Recommended hidden gems for you:</p>
+            <div id="cafe-list"></div>
+            <button class="btn" onclick="location.reload()">Retake Quiz</button>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div style="margin-top: 3rem; text-align: center;">
+        <h3>Professional Hub</h3>
+        <p>Are you a cafe owner? <a href="#">Consult with our experts</a> or <a href="#">List your shop</a>.</p>
+    </div>
+</div>
+
+<script>
+    let userProfile = "";
+
+    function nextQuestion(profile, notes) {
+        userProfile = profile;
+        document.getElementById('question-box').classList.add('hidden');
+        document.getElementById('result-box').classList.remove('hidden');
+        document.getElementById('profile-name').innerText = profile;
+
+        // Save to Database via PHP
+        let formData = new FormData();
+        formData.append('profile', profile);
+        formData.append('notes', notes);
+
+        fetch('api.php?action=save_quiz', { method: 'POST', body: formData });
+
+        // Fetch Recommendations
+        fetch(`api.php?action=get_cafes&profile=${profile}`)
+            .then(res => res.json())
+            .then(data => {
+                let list = document.getElementById('cafe-list');
+                list.innerHTML = "";
+                data.forEach(cafe => {
+                    list.innerHTML += `
+                        <div class="cafe-card">
+                            <strong>${cafe.name}</strong> <span class="tag">${cafe.district}</span>
+                            <p>📍 Alley Guide: ${cafe.alley_guide}</p>
+                            <small>⚙️ Tech: ${cafe.tech_specs}</small>
+                        </div>
+                    `;
+                });
+            });
+    }
+</script>
+
+</body>
+</html>
