@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Bosgaurus Coffee",
+    "district": "Bình Thạnh, HCM",
+    "address": "92 Nguyễn Hữu Cảnh, Villa 1D, Phường 22",
+    "lat": 10.7935,
+    "lng": 106.7075,
+    "vibe": "Industrial Waterfront",
+    "signature_drink": "Big Bang Espresso",
+    "machine": "Black Eagle Gravimetric",
+    "tds": "110ppm",
+    "beans": "Fine Robusta, Ethiopia",
+    "social_url": "https://www.facebook.com/bosgauruscoffee",
+    "menu_url": "https://bosgauruscoffee.com/menu"
+  },
+  {
+    "name": "The Workshop Coffee",
+    "district": "Quận 1, HCM",
+    "address": "27 Ngô Đức Kế (Tầng 2), Phường Bến Nghé",
+    "lat": 10.774523,
+    "lng": 106.702558,
+    "vibe": "Historic Rooftop Industrial",
+    "signature_drink": "V60 Pour-over",
+    "machine": "Slayer Steam LP",
+    "tds": "125ppm",
+    "beans": "Dalat Arabica, Kenya",
+    "social_url": "https://www.instagram.com/theworkshopcoffee",
+    "menu_url": "https://theworkshopcoffee.com/menu"
+  },
+  {
+    "name": "XLIII Coffee (HCM)",
+    "district": "Quận 1, HCM",
+    "address": "4 Lương Hữu Khánh, Phường Phạm Ngũ Lão",
+    "lat": 10.781145,
+    "lng": 106.697521,
+    "vibe": "Ultra Minimalist Black",
+    "signature_drink": "Specialty Espresso",
+    "machine": "Modbar AV System",
+    "tds": "85ppm",
+    "beans": "Single Origin Nano-lots",
+    "social_url": "https://www.facebook.com/43factorycoffeeroaster",
+    "menu_url": "https://43factory.coffee/en/menu"
+  },
+  {
+    "name": "43 Factory Coffee",
+    "district": "Ngũ Hành Sơn, ĐN",
+    "address": "422 Ngô Thì Sỹ, Phường Mỹ An",
+    "lat": 16.0425,
+    "lng": 108.2452,
+    "vibe": "Modernist Glasshouse",
+    "signature_drink": "Micro-lot Filter",
+    "machine": "Modbar AV System",
+    "tds": "88ppm",
+    "beans": "Rare International Lots",
+    "social_url": "https://43factory.coffee",
+    "menu_url": "#"
+  }
+]

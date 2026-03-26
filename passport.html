@@ -1,0 +1,72 @@
+<!-- 
+    PROJECT: Hạt & Hẻm (Bean & Alley)
+    AUTHOR: Nguyen Trong Tin at RMIT University
+    TECH STACK: Chart.js, LocalStorage.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hạt & Hẻm | Passport</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --coffee: #3d2b1f; --cream: #fdfaf7; --accent: #d4a373; --white: #ffffff; --soft-shadow: 0 10px 40px rgba(61, 43, 31, 0.08); }
+        * { box-sizing: border-box; font-family: 'Be Vietnam Pro', sans-serif; }
+        body { background: var(--cream); margin: 0; color: var(--coffee); overflow-x: hidden; }
+        header { background: rgba(61, 43, 31, 0.98); backdrop-filter: blur(10px); color: white; padding: 0 5%; display: flex; justify-content: space-between; align-items: center; height: 70px; position: fixed; top: 0; width: 100%; z-index: 10005; }
+        .logo { font-size: 1.2rem; font-weight: 800; text-decoration: none; color: white; }
+        nav a { color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; margin-right: 20px; opacity: 0.8; }
+        .nav-btn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        main { margin-top: 100px; padding: 0 5% 50px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .profile-card { background: white; border-radius: 30px; padding: 30px; box-shadow: var(--soft-shadow); margin-bottom: 40px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; align-items: center; }
+        #p-story { font-style: italic; font-size: 0.95rem; line-height: 1.7; border-left: 5px solid var(--accent); padding-left: 20px; color: #555; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-top: 30px; }
+        .stamp { background: #fff; border-radius: 50%; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #ddd; text-align: center; font-size: 0.7rem; font-weight: 800; color: #bbb; }
+        .collected { opacity: 1; color: var(--coffee); border: 2px solid var(--accent); background: #fffcf5; transform: rotate(-6deg) scale(1.05); box-shadow: 0 8px 20px rgba(212, 163, 115, 0.2); }
+        footer { padding: 40px 5% 60px; text-align: center; font-size: 11px; color: #8a7b6f; line-height: 1.8; opacity: 0.7; }
+        @media (max-width: 850px) { .profile-card { grid-template-columns: 1fr; text-align: center; } #p-story { border-left: none; border-top: 5px solid var(--accent); padding-top: 15px; } .grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+<header>
+    <a href="index.html" class="logo">Hạt & Hẻm</a>
+    <nav>
+        <a href="index.html">Decoder</a> <a href="map.html">Map</a> <a href="passport.html">Passport</a>
+        <span class="auth-box"></span>
+    </nav>
+</header>
+<main>
+    <div class="profile-card" id="p-active" style="display:none;">
+        <div><h2 id="u-name" style="margin-top:0;">Explorer</h2><p id="p-story"></p><div id="p-recs" style="margin-top:20px; font-size:0.85rem; padding:15px; background:var(--cream); border-radius:15px;"></div></div>
+        <div style="display:flex; justify-content:center;"><canvas id="p-chart" style="max-width:280px;"></canvas></div>
+    </div>
+    <div id="p-empty" style="text-align:center; padding:50px; border:3px dashed #eee; border-radius:30px; background:white;">
+        <h3>Passport Empty</h3><button class="nav-btn" onclick="window.location.href='index.html'">Start Decoder</button>
+    </div>
+    <h3 style="margin-top:50px; font-weight: 800;">📜 Journey Stamps</h3>
+    <div class="grid" id="grid"></div>
+</main>
+<footer><p>© 2024 Nguyen Trong Tin @ RMIT University • Powered by Gemini AI</p></footer>
+<script>
+    async function load() {
+        const uid = localStorage.getItem('uid');
+        document.querySelector('.auth-box').innerHTML = uid ? `<button class="nav-btn" onclick="localStorage.clear(); location.reload();">Logout</button>` : `<button class="nav-btn" onclick="window.location.href='index.html'">Login</button>`;
+        if(uid && localStorage.getItem('has_profile')) {
+            document.getElementById('p-empty').style.display = 'none'; document.getElementById('p-active').style.display = 'grid';
+            document.getElementById('u-name').innerText = localStorage.getItem('uemail').split('@')[0];
+            document.getElementById('p-story').innerText = localStorage.getItem('p_story');
+            const r = JSON.parse(localStorage.getItem('p_recs'));
+            document.getElementById('p-recs').innerHTML = `<b>MATCH:</b><br>📍 ${r.cafe}<br>🥤 ${r.drink}`;
+            new Chart(document.getElementById('p-chart'), { type: 'radar', data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: JSON.parse(localStorage.getItem('p_scores')), backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 3 }] }, options: { scales: { r: { suggestedMax: 10, ticks: { display: false } } }, plugins: { legend: { display: false } } } });
+        }
+        const res = await fetch('./cafes.json'); const cafes = await res.json();
+        const grid = document.getElementById('grid'); grid.innerHTML = "";
+        cafes.forEach((c, i) => { grid.innerHTML += `<div class="stamp ${i < 3 ? 'collected' : ''}"><b>${c.name}</b><br><small style="opacity:0.6">${c.district}</small></div>`; });
+    }
+    window.onload = load;
+</script>
+</body>
+</html>
