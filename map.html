@@ -1,8 +1,8 @@
 <!-- 
     PROJECT: Hạt & Hẻm (Bean & Alley)
     AUTHOR: Nguyen Trong Tin at RMIT University
-    VERSION: 2026 "Side-Anchor" Stable Build
-    TECH STACK: Leaflet.js, Custom SVG Pins, CSS Filters.
+    VERSION: 2026 "True-Side" Stable Build
+    TECH STACK: Leaflet.js, Custom SVG Pins, CSS Overrides.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -31,14 +31,14 @@
         nav.desktop-nav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: var(--accent); border-radius: 999px; }
         .nav-btn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
 
-        /* --- MAP STYLE --- */
+        /* --- MAP & CONTROLS --- */
         #map { flex: 1; width: 100%; z-index: 1; background: var(--cream); }
         .leaflet-layer { filter: sepia(0.3) hue-rotate(-10deg) contrast(0.9) brightness(1.05); }
 
         .controls { 
             position: absolute; top: 90px; left: 50%; transform: translateX(-50%); 
             z-index: 1000; background: white; padding: 6px; border-radius: 50px; 
-            display: flex; box-shadow: 0 10px 30px rgba(61, 43, 31, 0.15); border: 1px solid rgba(0,0,0,0.05);
+            display: flex; box-shadow: 0 10px 30px rgba(61, 43, 31, 0.15); 
         }
         .mode-btn { 
             border: none; padding: 10px 22px; border-radius: 30px; cursor: pointer; 
@@ -46,24 +46,26 @@
         }
         .mode-btn.active { background: var(--coffee); color: white; }
 
-        /* --- PIN STYLE --- */
-        .custom-pin { display: flex; justify-content: center; align-items: center; }
-        .pin-svg { filter: drop-shadow(0 4px 6px rgba(61, 43, 31, 0.3)); transition: 0.2s; }
-
-        /* --- POPUP STYLING (SIDE ALIGNED) --- */
+        /* --- THE TRUE SIDE-POPUP RE-STYLE --- */
+        /* This block overrides Leaflet's hardcoded "Top" positioning */
         .leaflet-popup {
-            margin-left: 15px; /* Gap from pin */
+            position: absolute;
+            text-align: left;
+            margin-bottom: 0 !important;
+            bottom: unset !important;
+            /* Move it to the right of the anchor */
+            transform: translate3d(20px, -50%, 0) !important; 
         }
         .leaflet-popup-content-wrapper { 
             border-radius: 20px; padding: 0; 
             box-shadow: 0 15px 45px rgba(61, 43, 31, 0.2) !important;
-            border: 1px solid rgba(212, 163, 115, 0.15);
-            width: 320px;
+            border: 1px solid rgba(212, 163, 115, 0.2);
+            width: 310px;
         }
-        .leaflet-popup-content { margin: 0 !important; width: 320px !important; }
-        .leaflet-popup-tip-container { display: none; } /* Remove bottom arrow for side look */
+        .leaflet-popup-content { margin: 0 !important; width: 310px !important; }
+        .leaflet-popup-tip-container { display: none; } /* Remove bottom arrow */
 
-        .pop-container { max-height: 420px; overflow-y: auto; padding: 24px; color: var(--coffee); }
+        .pop-container { max-height: 400px; overflow-y: auto; padding: 24px; color: var(--coffee); }
         .pop-kicker { font-size: 9px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
         .pop-title { font-size: 1.3rem; font-weight: 800; line-height: 1.1; margin-bottom: 4px; }
         .pop-subtitle { font-size: 0.75rem; color: #8a7b6f; margin-bottom: 15px; font-weight: 600; }
@@ -87,8 +89,9 @@
 
         @media (max-width: 850px) {
             nav.desktop-nav { display: none; }
-            .leaflet-popup-content-wrapper { width: 270px; }
-            .leaflet-popup-content { width: 270px !important; }
+            /* On mobile, we return it to the top so it fits on screen */
+            .leaflet-popup { transform: translate3d(-50%, -115%, 0) !important; }
+            .leaflet-popup-content-wrapper, .leaflet-popup-content { width: 260px !important; }
         }
     </style>
 </head>
@@ -127,7 +130,12 @@
 
     // --- 2. MAP CORE ---
     function init() {
-        map = L.map('map', { zoomControl: false }).setView([10.776, 106.700], 13);
+        // Fix: closePopupOnClick: false prevents the map from killing popups instantly
+        map = L.map('map', { 
+            zoomControl: false, 
+            closePopupOnClick: false 
+        }).setView([10.776, 106.700], 13);
+        
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd' }).addTo(map);
         loadData();
         syncAuthUI();
@@ -139,7 +147,7 @@
             const data = await res.json();
             cafes = data.filter(c => (c.district || '').toUpperCase().includes('HCM'));
             renderMarkers();
-        } catch(e) { console.error("JSON data failed to load."); }
+        } catch(e) { console.error("JSON Error"); }
     }
 
     function renderMarkers() {
@@ -149,9 +157,9 @@
         cafes.forEach((c) => {
             const m = L.marker([c.lat, c.lng], { icon: customIcon }).addTo(map);
             
+            // Fix: Manual click management to prevent bubbling and instant close
             m.on('click', function(e) {
-                // IMPORTANT: Stop the click from closing the popup immediately
-                L.DomEvent.stopPropagation(e); 
+                L.DomEvent.stop(e); // Hard stop event bubbling
                 updatePopup(m, c);
             });
 
@@ -176,7 +184,7 @@
             content += `
                 <div class="pop-data"><b>Roaster:</b> ${cafe.roaster_type}</div>
                 <div class="pop-section">
-                    <div class="pop-label">Tech Specs</div>
+                    <div class="pop-label">Technical</div>
                     <div class="pop-data"><b>Machine:</b> ${cafe.machine}<br><b>Beans:</b> ${cafe.beans}</div>
                 </div>`;
         }
@@ -194,16 +202,15 @@
             </div>
         </div>`;
 
-        // Anchor popup to the right side
+        // We bind the popup with autoPan: false so the map doesn't jitter/close
         marker.bindPopup(content, { 
-            offset: [175, 140], // Shift content right
-            closeButton: false,
-            autoPan: true,
-            className: 'side-popup'
+            closeButton: true,
+            autoPan: false,
+            className: 'side-popup-container'
         }).openPopup();
 
-        // Slide map so popup is visible
-        map.panTo([cafe.lat, cafe.lng + 0.008], {animate: true});
+        // Manual slide map so popup is visible on the right
+        map.panTo([cafe.lat, cafe.lng + 0.012], {animate: true});
     }
 
     function setMode(m) {
@@ -212,7 +219,7 @@
         document.getElementById('h1').classList.toggle('active', mode === 'hem');
         document.getElementById('h2').classList.toggle('active', mode === 'hat');
         
-        // Seamlessly update content if a popup is already open
+        // Update open popup content instantly
         markers.forEach((m, index) => {
             if (m.getPopup() && m.getPopup().isOpen()) {
                 updatePopup(m, cafes[index]);
