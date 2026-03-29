@@ -1,7 +1,7 @@
 <!-- 
     PROJECT: Hạt & Hẻm (Bean & Alley)
     AUTHOR: Nguyen Trong Tin at RMIT University
-    VERSION: 2026 "Seamless" Build
+    VERSION: 2026 Professional Pin & Full Data Build
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -36,7 +36,22 @@
         }
         .mode-btn.active { background: var(--coffee); color: white; }
 
-        /* SCROLLABLE FULL DATA POPUP */
+        /* PROFESSIONAL PIN STYLING */
+        .custom-pin {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .pin-svg {
+            filter: drop-shadow(0 4px 6px rgba(61, 43, 31, 0.4));
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        .custom-pin:hover .pin-svg {
+            transform: scale(1.15) translateY(-2px);
+            filter: drop-shadow(0 6px 10px rgba(61, 43, 31, 0.5));
+        }
+
+        /* POPUP STYLING */
         .leaflet-popup-content-wrapper { 
             border-radius: 24px; padding: 0; 
             box-shadow: 0 15px 45px rgba(61, 43, 31, 0.25) !important;
@@ -46,22 +61,23 @@
         .leaflet-popup-content { margin: 0; width: 300px !important; }
         .leaflet-popup-tip { background: white; }
         
-        .pop-container { max-height: 400px; overflow-y: auto; padding: 20px; }
+        .pop-container { max-height: 400px; overflow-y: auto; padding: 24px; }
         .pop-kicker { font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; }
-        .pop-title { font-size: 1.3rem; font-weight: 800; color: var(--coffee); margin-bottom: 4px; line-height: 1.1; }
-        .pop-subtitle { font-size: 0.75rem; color: #8a7b6f; margin-bottom: 15px; font-weight: 600; }
+        .pop-title { font-size: 1.4rem; font-weight: 800; color: var(--coffee); margin-bottom: 4px; line-height: 1.1; }
+        .pop-subtitle { font-size: 0.75rem; color: #8a7b6f; margin-bottom: 18px; font-weight: 600; }
         
         .pop-section { border-top: 1px solid #f0e6dc; padding-top: 15px; margin-top: 15px; }
         .pop-label { font-size: 0.7rem; font-weight: 800; color: #bca08d; text-transform: uppercase; margin-bottom: 5px; }
         .pop-data { font-size: 0.85rem; line-height: 1.5; color: var(--coffee); margin-bottom: 10px; }
         
-        /* Links & Tags */
-        .pop-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .pop-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
         .pop-link-btn { 
             text-align: center; text-decoration: none; background: #fdfaf7; 
-            border: 1px solid #e6ddd2; color: var(--coffee); padding: 8px; 
-            border-radius: 10px; font-size: 0.7rem; font-weight: 800; 
+            border: 1px solid #e6ddd2; color: var(--coffee); padding: 10px; 
+            border-radius: 12px; font-size: 0.7rem; font-weight: 800; transition: 0.2s;
         }
+        .pop-link-btn:hover { background: #f6efe8; border-color: var(--accent); }
+
         .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
         .tag-chip { background: #f6efe8; color: #7a5a3d; padding: 4px 10px; border-radius: 999px; font-size: 0.6rem; font-weight: 700; }
 
@@ -99,8 +115,16 @@
 <script>
     let map, mode = 'hem', cafes = [], markers = [];
 
+    // DEFINE THE PROFESSIONAL PIN SVG
+    const pinSVG = `
+        <svg class="pin-svg" width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 0C7.16344 0 0 7.16344 0 16C0 24.8366 16 42 16 42C16 42 32 24.8366 32 16C32 7.16344 24.8366 0 16 0Z" fill="#3d2b1f"/>
+            <circle cx="16" cy="16" r="6" fill="#d4a373"/>
+        </svg>
+    `;
+
     function init() {
-        map = L.map('map', { zoomControl: false, preferCanvas: true }).setView([10.776, 106.700], 13);
+        map = L.map('map', { zoomControl: false, preferCanvas: false }).setView([10.776, 106.700], 13);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd' }).addTo(map);
         loadData();
     }
@@ -108,7 +132,6 @@
     async function loadData() {
         const res = await fetch('./cafes.json');
         const data = await res.json();
-        // Filter out regional reference records (Keep only HCM)
         cafes = data.filter(c => c.district && c.district.toUpperCase().includes('HCM'));
         renderMarkers();
     }
@@ -117,79 +140,59 @@
         markers.forEach(m => map.removeLayer(m));
         markers = [];
 
-        cafes.forEach((c, index) => {
-            const m = L.circleMarker([c.lat, c.lng], {
-                radius: 10,
-                fillColor: "#d4a373",
-                color: "#3d2b1f",
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.8
-            }).addTo(map);
+        const customIcon = L.divIcon({
+            className: 'custom-pin',
+            html: pinSVG,
+            iconSize: [32, 42],
+            iconAnchor: [16, 42]
+        });
 
-            m.on('click', () => {
-                updatePopup(m, c);
-            });
-
+        cafes.forEach((c) => {
+            const m = L.marker([c.lat, c.lng], { icon: customIcon }).addTo(map);
+            m.on('click', () => updatePopup(m, c));
             markers.push(m);
         });
     }
 
     function updatePopup(marker, cafe) {
         let content = `<div class="pop-container">`;
-        
-        // --- HEADER (Shared) ---
         content += `
             <div class="pop-kicker">${mode === 'hem' ? '📍 Hẻm Discovery' : '🧪 Hạt Analytics'}</div>
             <div class="pop-title">${cafe.name}</div>
-            <div class="pop-subtitle">${cafe.address}, ${cafe.ward}</div>
+            <div class="pop-subtitle">${cafe.address}</div>
         `;
 
         if (mode === 'hem') {
-            // --- HẺM DATA ---
             content += `
                 <div class="pop-data"><b>The Vibe:</b> ${cafe.vibe}</div>
                 <div class="pop-data"><b>Signature:</b> ${cafe.signature_drink}</div>
-                
                 <div class="pop-section">
                     <div class="pop-label">Why it Matters</div>
                     <div class="pop-data">${cafe.why_it_matters}</div>
                 </div>
-
                 <div class="pop-section">
                     <div class="pop-label">Alley Note</div>
                     <div class="pop-data"><i>"${cafe.hem_note}"</i></div>
                 </div>
-
-                <div class="pop-section">
-                    <div class="pop-label">Best For</div>
-                    <div class="pop-data">${cafe.best_for}</div>
-                </div>
             `;
         } else {
-            // --- HẠT DATA ---
             content += `
                 <div class="pop-data"><b>Roaster:</b> ${cafe.roaster_type}</div>
-                <div class="pop-data"><b>Focus:</b> ${cafe.origin_focus}</div>
-                
+                <div class="pop-data"><b>Origin Focus:</b> ${cafe.origin_focus}</div>
                 <div class="pop-section">
-                    <div class="pop-label">Hardware & Extraction</div>
+                    <div class="pop-label">Hardware</div>
                     <div class="pop-data">
                         <b>Machine:</b> ${cafe.machine}<br>
-                        <b>Grinder:</b> ${cafe.grinder}<br>
                         <b>Methods:</b> ${cafe.brew_methods.join(', ')}
                     </div>
                 </div>
-
                 <div class="pop-section">
                     <div class="pop-label">Roast Profile</div>
                     <div class="pop-data">
                         <b>Style:</b> ${cafe.roast_style}<br>
-                        <b>Beans:</b> ${cafe.beans}<br>
-                        <b>Water TDS:</b> ${cafe.tds}
+                        <b>Beans:</b> ${cafe.beans}
                     </div>
                 </div>
-
                 <div class="pop-section">
                     <div class="pop-label">Brewer's Note</div>
                     <div class="pop-data">${cafe.hat_note}</div>
@@ -197,28 +200,24 @@
             `;
         }
 
-        // --- FOOTER (Shared) ---
         content += `
             <div class="pop-section">
-                <div class="pop-label">Discovery Tags</div>
+                <div class="pop-label">Tags</div>
                 <div class="tag-cloud">
                     ${cafe.tags.map(t => `<span class="tag-chip">${t}</span>`).join('')}
                     <span class="tag-chip">${cafe.price_range}</span>
-                    <span class="tag-chip">${cafe.work_friendly ? 'Work OK' : 'No Laptops'}</span>
                 </div>
             </div>
-
             <div class="pop-links">
                 <a href="${cafe.menu_url}" target="_blank" class="pop-link-btn">📖 Menu</a>
                 <a href="${cafe.social_url}" target="_blank" class="pop-link-btn">📸 Social</a>
-                <a href="${cafe.google_maps_url}" target="_blank" class="pop-link-btn" style="grid-column: span 2;">🗺️ Google Maps</a>
+                <a href="${cafe.google_maps_url}" target="_blank" class="pop-link-btn" style="grid-column: span 2;">🗺️ View on Google Maps</a>
+            </div>
             </div>
         `;
 
-        content += `</div>`; // Close container
-
         marker.bindPopup(content, { 
-            offset: [0, -5],
+            offset: [0, -40], // Adjust offset for pin height
             closeButton: false,
             maxWidth: 300
         }).openPopup();
@@ -232,7 +231,6 @@
         document.getElementById('h1').classList.toggle('active', mode === 'hem');
         document.getElementById('h2').classList.toggle('active', mode === 'hat');
 
-        // Seamless update: find open popup and re-render content
         markers.forEach((m, index) => {
             if (m.getPopup() && m.getPopup().isOpen()) {
                 updatePopup(m, cafes[index]);
