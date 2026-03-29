@@ -20,13 +20,10 @@
         header { flex-shrink:0; background: rgba(61, 43, 31, 0.98); backdrop-filter: blur(10px); color: white; padding: 0 5%; display: flex; justify-content: space-between; align-items: center; height: 70px; z-index: 10005; }
         .logo { font-size: 1.2rem; font-weight: 800; text-decoration: none; color: white; }
         
-        /* THE MAP STYLE - Custom Filter for Coffee/Cream look */
         #map { flex: 1; width: 100%; z-index: 1; background: var(--cream); }
-        .leaflet-layer, .leaflet-control-zoom { 
-            filter: sepia(0.4) hue-rotate(-15deg) contrast(0.9) brightness(1.05); 
-        }
+        /* Coffee Parchment Filter */
+        .leaflet-layer { filter: sepia(0.3) hue-rotate(-10deg) contrast(0.95) brightness(1.02); }
 
-        /* Mode Switcher UI */
         .controls { 
             position: absolute; top: 90px; left: 50%; transform: translateX(-50%); 
             z-index: 1000; background: white; padding: 6px; border-radius: 50px; 
@@ -35,35 +32,41 @@
         .mode-btn { 
             border: none; padding: 10px 22px; border-radius: 30px; cursor: pointer; 
             font-weight: 800; font-size: 0.7rem; color: #999; transition: 0.3s; 
-            background: transparent; text-transform: uppercase; letter-spacing: 0.5px;
+            background: transparent; text-transform: uppercase;
         }
         .mode-btn.active { background: var(--coffee); color: white; }
 
-        /* Custom Branded Popups */
+        /* SCROLLABLE FULL DATA POPUP */
         .leaflet-popup-content-wrapper { 
-            border-radius: 20px; padding: 10px; 
-            box-shadow: 0 10px 30px rgba(61, 43, 31, 0.2) !important;
+            border-radius: 24px; padding: 0; 
+            box-shadow: 0 15px 45px rgba(61, 43, 31, 0.25) !important;
             border: 1px solid rgba(212, 163, 115, 0.2);
+            width: 300px; 
         }
+        .leaflet-popup-content { margin: 0; width: 300px !important; }
         .leaflet-popup-tip { background: white; }
         
-        .pop-card { min-width: 220px; color: var(--coffee); }
-        .pop-kicker { font-size: 9px; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 4px; }
-        .pop-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; line-height: 1.2; }
-        .pop-body { font-size: 0.85rem; line-height: 1.5; color: #5a4a3f; }
-        .pop-tag { 
-            display: inline-block; margin-top: 10px; background: #f6efe8; 
-            color: #7a5a3d; padding: 4px 10px; border-radius: 999px; 
-            font-size: 0.65rem; font-weight: 700; 
+        .pop-container { max-height: 400px; overflow-y: auto; padding: 20px; }
+        .pop-kicker { font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; }
+        .pop-title { font-size: 1.3rem; font-weight: 800; color: var(--coffee); margin-bottom: 4px; line-height: 1.1; }
+        .pop-subtitle { font-size: 0.75rem; color: #8a7b6f; margin-bottom: 15px; font-weight: 600; }
+        
+        .pop-section { border-top: 1px solid #f0e6dc; padding-top: 15px; margin-top: 15px; }
+        .pop-label { font-size: 0.7rem; font-weight: 800; color: #bca08d; text-transform: uppercase; margin-bottom: 5px; }
+        .pop-data { font-size: 0.85rem; line-height: 1.5; color: var(--coffee); margin-bottom: 10px; }
+        
+        /* Links & Tags */
+        .pop-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .pop-link-btn { 
+            text-align: center; text-decoration: none; background: #fdfaf7; 
+            border: 1px solid #e6ddd2; color: var(--coffee); padding: 8px; 
+            border-radius: 10px; font-size: 0.7rem; font-weight: 800; 
         }
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .tag-chip { background: #f6efe8; color: #7a5a3d; padding: 4px 10px; border-radius: 999px; font-size: 0.6rem; font-weight: 700; }
 
-        /* Navigation Jump */
         .city-jump { position: absolute; bottom: 30px; left: 20px; z-index: 1000; display: flex; gap: 8px; }
-        .jump-btn { 
-            background: white; border: none; padding: 10px 15px; border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; 
-            font-size: 0.65rem; font-weight: 800; color: var(--coffee); 
-        }
+        .jump-btn { background: white; border: none; padding: 12px 18px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; font-size: 0.65rem; font-weight: 800; color: var(--coffee); }
 
         footer { flex-shrink: 0; background: var(--white); padding: 10px; font-size: 10px; color: #8a7b6f; text-align: center; border-top: 1px solid #eee; }
     </style>
@@ -79,8 +82,8 @@
 </header>
 
 <div class="controls">
-    <button id="h1" class="mode-btn active" onclick="setMode('hem')">Hẻm Mode</button>
-    <button id="h2" class="mode-btn" onclick="setMode('hat')">Hạt Mode</button>
+    <button id="h1" class="mode-btn active" onclick="setMode('hem')">Hẻm (Alley Vibe)</button>
+    <button id="h2" class="mode-btn" onclick="setMode('hat')">Hạt (Bean Tech)</button>
 </div>
 
 <div id="map"></div>
@@ -95,36 +98,28 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     let map, mode = 'hem', cafes = [], markers = [];
-    let activeCafe = null; // Tracks which cafe is currently viewed
 
-    // Initialize Map
     function init() {
         map = L.map('map', { zoomControl: false, preferCanvas: true }).setView([10.776, 106.700], 13);
-        
-        // Muted Carto Tiles
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            subdomains: 'abcd'
-        }).addTo(map);
-
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd' }).addTo(map);
         loadData();
     }
 
     async function loadData() {
         const res = await fetch('./cafes.json');
         const data = await res.json();
-        cafes = data.filter(c => c.district.includes('HCM'));
+        // Filter out regional reference records (Keep only HCM)
+        cafes = data.filter(c => c.district && c.district.toUpperCase().includes('HCM'));
         renderMarkers();
     }
 
     function renderMarkers() {
-        // Clear existing markers
         markers.forEach(m => map.removeLayer(m));
         markers = [];
 
-        cafes.forEach(c => {
-            // Custom Marker Styling (Accent color circle)
+        cafes.forEach((c, index) => {
             const m = L.circleMarker([c.lat, c.lng], {
-                radius: 8,
+                radius: 10,
                 fillColor: "#d4a373",
                 color: "#3d2b1f",
                 weight: 2,
@@ -133,7 +128,6 @@
             }).addTo(map);
 
             m.on('click', () => {
-                activeCafe = c;
                 updatePopup(m, c);
             });
 
@@ -141,40 +135,104 @@
         });
     }
 
-    // This function builds the content and opens it
     function updatePopup(marker, cafe) {
-        let content = `
-            <div class="pop-card">
-                <div class="pop-kicker">${mode === 'hem' ? 'Vibe Explorer' : 'Technical Data'}</div>
-                <div class="pop-title">${cafe.name}</div>
-                <div class="pop-body">
-                    ${mode === 'hem' 
-                        ? `📍 ${cafe.address}<br>✨ ${cafe.vibe}<br><br><i>${cafe.hem_note}</i>` 
-                        : `⚙️ ${cafe.machine}<br>🫘 ${cafe.beans}<br>🔥 ${cafe.roast_style}<br>💧 ${cafe.tds || '110ppm'}`
-                    }
+        let content = `<div class="pop-container">`;
+        
+        // --- HEADER (Shared) ---
+        content += `
+            <div class="pop-kicker">${mode === 'hem' ? '📍 Hẻm Discovery' : '🧪 Hạt Analytics'}</div>
+            <div class="pop-title">${cafe.name}</div>
+            <div class="pop-subtitle">${cafe.address}, ${cafe.ward}</div>
+        `;
+
+        if (mode === 'hem') {
+            // --- HẺM DATA ---
+            content += `
+                <div class="pop-data"><b>The Vibe:</b> ${cafe.vibe}</div>
+                <div class="pop-data"><b>Signature:</b> ${cafe.signature_drink}</div>
+                
+                <div class="pop-section">
+                    <div class="pop-label">Why it Matters</div>
+                    <div class="pop-data">${cafe.why_it_matters}</div>
                 </div>
-                <div class="pop-tag">${cafe.district}</div>
+
+                <div class="pop-section">
+                    <div class="pop-label">Alley Note</div>
+                    <div class="pop-data"><i>"${cafe.hem_note}"</i></div>
+                </div>
+
+                <div class="pop-section">
+                    <div class="pop-label">Best For</div>
+                    <div class="pop-data">${cafe.best_for}</div>
+                </div>
+            `;
+        } else {
+            // --- HẠT DATA ---
+            content += `
+                <div class="pop-data"><b>Roaster:</b> ${cafe.roaster_type}</div>
+                <div class="pop-data"><b>Focus:</b> ${cafe.origin_focus}</div>
+                
+                <div class="pop-section">
+                    <div class="pop-label">Hardware & Extraction</div>
+                    <div class="pop-data">
+                        <b>Machine:</b> ${cafe.machine}<br>
+                        <b>Grinder:</b> ${cafe.grinder}<br>
+                        <b>Methods:</b> ${cafe.brew_methods.join(', ')}
+                    </div>
+                </div>
+
+                <div class="pop-section">
+                    <div class="pop-label">Roast Profile</div>
+                    <div class="pop-data">
+                        <b>Style:</b> ${cafe.roast_style}<br>
+                        <b>Beans:</b> ${cafe.beans}<br>
+                        <b>Water TDS:</b> ${cafe.tds}
+                    </div>
+                </div>
+
+                <div class="pop-section">
+                    <div class="pop-label">Brewer's Note</div>
+                    <div class="pop-data">${cafe.hat_note}</div>
+                </div>
+            `;
+        }
+
+        // --- FOOTER (Shared) ---
+        content += `
+            <div class="pop-section">
+                <div class="pop-label">Discovery Tags</div>
+                <div class="tag-cloud">
+                    ${cafe.tags.map(t => `<span class="tag-chip">${t}</span>`).join('')}
+                    <span class="tag-chip">${cafe.price_range}</span>
+                    <span class="tag-chip">${cafe.work_friendly ? 'Work OK' : 'No Laptops'}</span>
+                </div>
+            </div>
+
+            <div class="pop-links">
+                <a href="${cafe.menu_url}" target="_blank" class="pop-link-btn">📖 Menu</a>
+                <a href="${cafe.social_url}" target="_blank" class="pop-link-btn">📸 Social</a>
+                <a href="${cafe.google_maps_url}" target="_blank" class="pop-link-btn" style="grid-column: span 2;">🗺️ Google Maps</a>
             </div>
         `;
-        
+
+        content += `</div>`; // Close container
+
         marker.bindPopup(content, { 
             offset: [0, -5],
             closeButton: false,
-            className: 'branded-popup'
+            maxWidth: 300
         }).openPopup();
-        
-        map.panTo(marker.getLatLng(), {animate: true});
+
+        map.panTo(marker.getLatLng());
     }
 
     function setMode(m) {
         if (mode === m) return;
         mode = m;
-
-        // Update Buttons
         document.getElementById('h1').classList.toggle('active', mode === 'hem');
         document.getElementById('h2').classList.toggle('active', mode === 'hat');
 
-        // IF a popup is open, update its content immediately without closing
+        // Seamless update: find open popup and re-render content
         markers.forEach((m, index) => {
             if (m.getPopup() && m.getPopup().isOpen()) {
                 updatePopup(m, cafes[index]);
