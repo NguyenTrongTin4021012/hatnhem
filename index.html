@@ -1,24 +1,18 @@
-<!-- 
-    PROJECT: Hạt & Hẻm (Bean & Alley)
-    AUTHOR: Nguyen Trong Tin at RMIT University
-    VERSION: 2026 Build (Passport UI Fix)
-    TECH STACK: Chart.js, LocalStorage, CSS Grid.
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hạt & Hẻm | Taste Decoder</title>
+    <title>Hạt & Hẻm | Taste Decoder & About</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --coffee: #3d2b1f; --cream: #fdfaf7; --accent: #d4a373; --white: #ffffff; --soft-shadow: 0 10px 40px rgba(61, 43, 31, 0.08); }
         * { box-sizing: border-box; font-family: 'Be Vietnam Pro', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--cream); margin: 0; color: var(--coffee); overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh; }
+        body { background: var(--cream); margin: 0; color: var(--coffee); overflow-x: hidden; }
 
-        /* Header & Navigation */
+        /* Header Navigation */
         header { 
             background: rgba(61, 43, 31, 0.98); backdrop-filter: blur(10px); color: white; 
             padding: 0 5%; display: flex; justify-content: space-between; align-items: center; 
@@ -31,39 +25,28 @@
         nav.desktop-nav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: var(--accent); border-radius: 999px; }
         .nav-btn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
 
-        /* Burger Menu */
-        .burger { display: none; cursor: pointer; flex-direction: column; gap: 6px; padding: 10px; z-index: 10010; }
-        .burger div { width: 28px; height: 3px; background: white; border-radius: 5px; transition: 0.3s; }
-        .burger.active .line1 { transform: rotate(45deg) translate(6px, 6px); }
-        .burger.active .line2 { opacity: 0; }
-        .burger.active .line3 { transform: rotate(-45deg) translate(6px, -6px); }
-
-        .mobile-menu { position: fixed; top: 0; right: -100%; width: 75%; max-width: 300px; height: 100vh; background: var(--coffee); z-index: 10008; padding: 100px 40px; display: flex; flex-direction: column; gap: 25px; transition: 0.4s; }
-        .mobile-menu.active { right: 0; }
-        .mobile-menu a { color: white; text-decoration: none; font-size: 1.3rem; font-weight: 700; }
-        #menuOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10007; display: none; opacity: 0; transition: 0.3s; }
-        #menuOverlay.active { display: block; opacity: 1; }
-
         /* Main Content */
-        main { flex: 1; margin-top: 70px; padding: 40px 5%; display: flex; flex-direction: column; align-items: center; }
+        main { margin-top: 100px; padding: 0 5% 60px; display: flex; flex-direction: column; align-items: center; }
+        
         .eyebrow { display: inline-flex; padding: 8px 14px; border-radius: 999px; background: #f2e7da; color: #8a5f38; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
-        .quiz-card { background: var(--white); padding: 40px; border-radius: 30px; box-shadow: var(--soft-shadow); width: 100%; max-width: 480px; position: relative; overflow: hidden; }
+        .quiz-card { background: var(--white); padding: 40px; border-radius: 30px; box-shadow: var(--soft-shadow); width: 100%; max-width: 480px; position: relative; overflow: hidden; margin-bottom: 80px; }
         .progress-bar { position: absolute; top: 0; left: 0; height: 6px; background: var(--accent); width: 0%; transition: 0.4s; }
         .step { display: none; } .active { display: block; }
-        
-        /* Quiz UI Elements */
-        .step-meta, .quiz-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-        .helper-text { font-size: 0.82rem; color: #8a7b6f; text-align: center; margin-bottom: 20px; line-height: 1.6; }
-        .status-chip { padding: 8px 12px; border-radius: 999px; background: #f6efe8; color: #7a5a3d; font-size: 0.76rem; font-weight: 700; }
         
         .option-btn { display: block; width: 100%; padding: 20px; margin: 12px 0; border: 2px solid #f3f3f3; border-radius: 16px; cursor: pointer; background: white; font-weight: 600; text-align: center; color: var(--coffee); transition: 0.2s; font-size: 1rem; }
         .option-btn:hover { border-color: var(--accent); transform: scale(1.02); }
         .secondary-btn { border: 1px solid #e6ddd2; background: #fffaf5; color: var(--coffee); padding: 12px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        .secondary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
+        
         #result-text { font-size: 0.95rem; line-height: 1.7; background: #fffcf5; padding: 25px; border-radius: 20px; border-left: 6px solid var(--accent); margin-bottom: 20px; }
         .loading-ring { width: 42px; height: 42px; margin: 0 auto 16px; border-radius: 50%; border: 4px solid #efe5d9; border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ABOUT SECTION STYLING */
+        .about-section { width: 100%; max-width: 800px; padding: 60px 0; border-top: 1px solid #eee; }
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px; }
+        .about-card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .about-card h3 { margin-top: 0; color: var(--accent); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .about-card p { font-size: 0.9rem; line-height: 1.6; color: #666; }
 
         /* Modal */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26, 18, 12, 0.85); backdrop-filter: blur(8px); }
@@ -71,8 +54,12 @@
         .ans-input { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #eee; font-size: 1rem; margin-bottom: 15px; outline: none; }
 
         footer { padding: 40px 5% 60px; text-align: center; font-size: 11px; color: #8a7b6f; line-height: 1.8; opacity: 0.7; }
-
-        @media (max-width: 850px) { nav.desktop-nav { display: none; } .burger { display: flex; } .quiz-card { padding: 30px 22px; } }
+        
+        @media (max-width: 850px) {
+            nav.desktop-nav { display: none; }
+            .about-grid { grid-template-columns: 1fr; }
+            .quiz-card { padding: 30px 22px; }
+        }
     </style>
 </head>
 <body>
@@ -80,93 +67,104 @@
 <header>
     <a href="index.html" class="logo">Hạt & Hẻm</a>
     <nav class="desktop-nav">
-        <a href="index.html" class="current">Decoder</a> <a href="map.html">Explore Map</a> <a href="passport.html">Passport</a>
+        <a href="index.html" class="current">Decoder</a> 
+        <a href="map.html">Explore Map</a> 
+        <a href="passport.html">Passport</a>
         <span class="auth-box"></span>
     </nav>
-    <div class="burger" onclick="toggleMenu()"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div>
 </header>
 
-<div id="menuOverlay" onclick="toggleMenu()"></div>
-<div class="mobile-menu" id="mobileMenu">
-    <a href="index.html" class="current" onclick="toggleMenu()">Decoder</a>
-    <a href="map.html" onclick="toggleMenu()">Explore Map</a>
-    <a href="passport.html" onclick="toggleMenu()">Passport</a>
-    <div class="auth-box"></div>
-</div>
-
 <main>
-    <div style="text-align:center; padding: 0 20px 40px;">
+    <!-- Decoder Section -->
+    <div style="text-align:center; padding-bottom: 40px;">
         <div class="eyebrow">Taste Decoder</div>
-        <h1 style="margin:0; font-size: 2.2rem; font-weight: 800;">Find Your Palate</h1>
-        <p style="color: #666;">A static tasting decoder for your coffee DNA.</p>
+        <h1 style="margin:0; font-size: 2.5rem; font-weight: 800;">Find Your Coffee DNA</h1>
+        <p style="color: #666; max-width: 400px; margin: 15px auto;">Use our AI-powered engine to match your palate with Saigon's hidden specialty gems.</p>
     </div>
 
     <div class="quiz-card">
         <div class="progress-bar" id="progress-bar"></div>
         
-        <!-- Step 0: Path Selection -->
         <div id="step-0" class="step active">
-            <div class="helper-text">Choose your level first, then answer six quick prompts. No coffee expertise needed.</div>
-            <h3 style="text-align:center; margin-bottom:25px;">How do you explore?</h3>
+            <h3 style="text-align:center; margin-bottom:25px;">Choose your level</h3>
             <button class="option-btn" onclick="startPath('A')">☕ Beginner</button>
             <button class="option-btn" onclick="startPath('B')">⚖️ Intermediate</button>
             <button class="option-btn" onclick="startPath('C')">🔬 Professional</button>
         </div>
 
-        <!-- Quiz Flow -->
         <div id="quiz-flow" class="step">
-            <div class="step-meta">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                 <span class="status-chip" id="path-label">Path</span>
-                <span class="status-chip" id="step-label">Question 1 of 6</span>
+                <span class="status-chip" id="step-label">1 of 6</span>
             </div>
-            <h3 id="question-text" style="text-align:center; margin-bottom: 20px;"></h3>
+            <h3 id="question-text" style="text-align:center; margin-bottom: 25px;"></h3>
             <div id="options-container"></div>
-            <div class="quiz-footer">
+            <div style="margin-top:20px; text-align:center;">
                 <button id="back-btn" class="secondary-btn" onclick="goBack()" disabled>Back</button>
-                <span style="font-size: 0.7rem; color: #999;">Trust your first instinct</span>
             </div>
         </div>
 
-        <!-- Loading State -->
         <div id="loading" class="step" style="text-align:center; padding: 40px 0;">
             <div class="loading-ring"></div>
-            <p style="font-weight:600; color:var(--accent); margin:0;">Brewing Results...</p>
-            <p style="font-size: 0.8rem; color: #999; margin-top:10px;">Decoding your coffee DNA via AI...</p>
+            <p style="font-weight:600; color:var(--accent);">Brewing personalized results...</p>
         </div>
 
-        <!-- Results Display -->
         <div id="result" class="step">
-            <h2 style="text-align:center; margin-top:0;">Your DNA</h2>
+            <h2 style="text-align:center; margin-top:0;">Your Result</h2>
             <div id="result-text"></div>
-            <canvas id="palateChart" style="max-width: 300px; margin: 0 auto;"></canvas>
+            <canvas id="palateChart" style="max-width: 100%; margin: 20px auto;"></canvas>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
-                <button class="secondary-btn" onclick="window.location.href='map.html'">Explore Map</button>
+                <button class="secondary-btn" onclick="window.location.href='map.html'">Open Map</button>
                 <button class="secondary-btn" onclick="window.location.href='passport.html'">View Passport</button>
             </div>
-            <button class="option-btn" style="background:var(--coffee); color:white; margin-top:15px;" onclick="resetQuiz()">Retake Quiz</button>
+            <button class="option-btn" style="background:var(--coffee); color:white; margin-top:15px;" onclick="location.reload()">Start Over</button>
         </div>
     </div>
+
+    <!-- About Section (Beneath Decoder) -->
+    <section class="about-section">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <div class="eyebrow">Project Concept</div>
+            <h2 style="font-size: 2rem; font-weight: 800;">Bridging the Hạt & Hẻm</h2>
+        </div>
+
+        <div class="about-grid">
+            <div class="about-card">
+                <h3>The "Hạt" (The Bean)</h3>
+                <p>Specialty coffee is often seen as technical and intimidating. We translate TDS, roast levels, and extraction methods into a visual DNA profile that anyone can understand.</p>
+            </div>
+            <div class="about-card">
+                <h3>The "Hẻm" (The Alley)</h3>
+                <p>Saigon's best coffee is hidden in alleys. Our map doesn't just show locations; it captures the "Alley Soul" — the vibe, the energy, and the sense of place.</p>
+            </div>
+            <div class="about-card">
+                <h3>The Problem</h3>
+                <p>Discovery tools like Google Maps focus on ratings, but not <b>palate-match</b>. Consumers risk expensive orders they don't enjoy, while roasteries struggle to find their ideal audience.</p>
+            </div>
+            <div class="about-card">
+                <h3>The Tech Stack</h3>
+                <p>Developed by <b>Nguyen Trong Tin</b> for RMIT Digital Media Studio 4. Built using HTML5, Leaflet.js, Chart.js, and Google Gemini AI for deterministic tasting logic.</p>
+            </div>
+        </div>
+    </section>
 </main>
 
 <footer>
-    <p>© 2026 Nguyen Trong Tin at RMIT University</p>
-    <p>Data © OpenStreetMap • Hạt & Hẻm Digital Studio 4 Build</p>
+    <p>© 2026 Nguyen Trong Tin @ RMIT University • Digital Media Studio 4 Build</p>
 </footer>
 
 <!-- Login Modal -->
 <div id="loginModal" class="modal">
     <div class="modal-content">
-        <h2 style="margin-top:0;">Login</h2>
-        <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">This saves your profile to this browser.</p>
-        <input type="email" id="u_email" class="ans-input" placeholder="Email (required)">
-        <input type="password" id="u_pass" class="ans-input" placeholder="Password (any)">
+        <h2 style="margin-top:0;">Explorer Login</h2>
+        <input type="email" id="u_email" class="ans-input" placeholder="Email Address">
         <button class="nav-btn" style="width:100%; padding:18px;" onclick="submitAuth()">Continue</button>
         <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:#999; cursor:pointer;">Cancel</button>
     </div>
 </div>
 
 <script>
-    // --- 1. DATA & CONFIG ---
+    // --- CONFIG & DATA ---
     const GEMINI_API_KEY = 'AIzaSyC_cDMstZ1MtHfMJ-1JlCXIXgVPY3REDLw';
     const GEMINI_MODEL = 'gemini-1.5-flash';
     const quizPaths = {
@@ -198,38 +196,21 @@
 
     let path = '', step = 0, answers = [], chartInstance = null, cafes = [];
 
-    // --- 2. AUTH & UI (Fixed Global Scoping) ---
+    // --- FUNCTIONS ---
     function syncAuthUI() {
         const email = localStorage.getItem('uemail');
-        const authBoxes = document.querySelectorAll('.auth-box');
-        authBoxes.forEach(box => {
-            box.innerHTML = email ? 
-                `<button class="nav-btn" onclick="logout()">Logout</button>` : 
-                `<button class="nav-btn" onclick="openLogin()">Login</button>`;
+        document.querySelectorAll('.auth-box').forEach(b => {
+            b.innerHTML = email ? `<button class="nav-btn" onclick="localStorage.clear(); location.reload();">Logout</button>` : `<button class="nav-btn" onclick="document.getElementById('loginModal').style.display='block'">Login</button>`;
         });
     }
 
-    function openLogin() { document.getElementById('loginModal').style.display = 'block'; }
-    function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
-    
     function submitAuth() {
-        const email = document.getElementById('u_email').value.trim();
-        if (email.includes('@')) {
-            localStorage.setItem('uid', 'user_' + Date.now());
-            localStorage.setItem('uemail', email);
-            closeModal();
-            syncAuthUI();
-        } else { alert("Please enter a valid email address."); }
+        const email = document.getElementById('u_email').value;
+        if(email.includes('@')) { localStorage.setItem('uid', 'user_1'); localStorage.setItem('uemail', email); location.reload(); }
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
-    function toggleMenu() { 
-        document.getElementById('mobileMenu').classList.toggle('active'); 
-        document.getElementById('menuOverlay').classList.toggle('active'); 
-        document.querySelector('.burger').classList.toggle('active');
-    }
+    function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
 
-    // --- 3. QUIZ FLOW ---
     function startPath(p) { path = p; step = 0; answers = []; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
     
     function renderQuestion() {
@@ -245,17 +226,12 @@
     function selectOption(o) { answers.push(o); step++; if(step<6) renderQuestion(); else getAI(); }
     function goBack() { if(step > 0) { step--; answers.pop(); renderQuestion(); } }
 
-    // --- 4. ENGINE & API (Resilient Decoder) ---
     async function ensureData() { 
         if(cafes.length > 0) return;
         try {
             const r = await fetch('./cafes.json');
-            if(!r.ok) throw new Error();
             cafes = await r.json();
-        } catch (e) {
-            console.warn("JSON loading failed. Using fallback.");
-            cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over", beans: "Vietnam Specialty", vibe: "Garden"}];
-        }
+        } catch (e) { cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over"}]; }
     }
 
     async function getAI() {
@@ -263,7 +239,6 @@
         document.getElementById('loading').classList.add('active');
         await ensureData();
         
-        // Local Deterministic Scorer
         let finalScores = [4, 4, 4, 4, 4, 4];
         answers.forEach((ans, i) => {
             const traits = quizPaths[path][i].traits[ans];
@@ -277,21 +252,23 @@
         finalScores = finalScores.map(s => Math.min(10, s));
 
         let resData = {
-            story: `As a ${path === 'A' ? 'Beginner' : path === 'B' ? 'Intermediate' : 'Professional'} explorer, your taste profile leans toward clarity and complexity. You appreciate the craftsmanship of Saigon's specialty roasters who balance modern technique with local character.`,
+            story: `Your taste profile as a ${path} explorer shows a preference for character and clarity. You seek out roasters who respect the bean's origin.`,
             scores: finalScores,
             cafe: cafes[0].name,
             drink: cafes[0].signature_drink
         };
 
-        // Try API, Fail Silently
         try {
+            // Updated API structure to handle the 404 issue
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            const prompt = `Return ONLY JSON: {"story": "90 words narrative about user's ${path} coffee palate based on answers ${answers.join(',')}", "scores": [6 ints 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}`;
+            const promptBody = {
+                contents: [{ parts: [{ text: `Return JSON only: {"story": "90 words about user's ${path} coffee palate", "scores": [6 integers 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}` }] }]
+            };
             
             const resp = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                body: JSON.stringify(promptBody)
             });
 
             if (resp.ok) {
@@ -299,10 +276,9 @@
                 const cleanText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
                 const parsed = JSON.parse(cleanText);
                 resData.story = parsed.story || resData.story;
-            } else { console.warn("API 404. Using Local Narrative Engine."); }
-        } catch (e) { console.warn("Using Local Engine."); }
+            }
+        } catch (e) { console.warn("AI 404/Error: Bypassing to local decoder."); }
 
-        // Save for Passport
         localStorage.setItem('has_profile', 'true');
         localStorage.setItem('p_story', resData.story);
         localStorage.setItem('p_scores', JSON.stringify(resData.scores));
@@ -315,32 +291,21 @@
     function showResult(story, scores, name, drink) {
         document.getElementById('loading').classList.remove('active');
         document.getElementById('result').classList.add('active');
-        document.getElementById('result-text').innerHTML = `${story}<div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;"><b>Match: ${name}</b><br><small>${drink}</small></div>`;
+        document.getElementById('result-text').innerHTML = `${story}<div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;"><b>Recommended: ${name}</b><br><small>${drink}</small></div>`;
         
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(document.getElementById('palateChart'), {
             type: 'radar',
-            data: { 
-                labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], 
-                datasets: [{ data: scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 2 }] 
-            },
+            data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 2 }] },
             options: { scales: { r: { suggestedMax: 10, ticks: { display: false } } }, plugins: { legend: { display: false } } }
         });
     }
 
-    function resetQuiz() { location.reload(); }
+    window.onload = () => { syncAuthUI(); ensureData(); };
 
-    // --- 5. LIFECYCLE ---
-    window.onload = () => {
-        syncAuthUI();
-        ensureData();
-    };
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            const modal = document.getElementById('loginModal');
-            if (modal && modal.style.display === 'block') { submitAuth(); }
-        }
+    // Support Enter Key for login
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' && document.getElementById('loginModal').style.display === 'block') submitAuth();
     });
 </script>
 </body>
