@@ -127,6 +127,9 @@
 </div>
 
 <script>
+    // --- DATA & CONFIG ---
+    const GEMINI_API_KEY = 'AIzaSyC_cDMstZ1MtHfMJ-1JlCXIXgVPY3REDLw';
+    const GEMINI_MODEL = 'gemini-1.5-flash';
     const quizPaths = {
         A: [
             { q: "Morning craving?", a: "Sweet", b: "Savory", c: "Black coffee only", traits: { "Sweet": { floral: 1, fruity: 1, sweet: 2 }, "Savory": { nutty: 2, roasted: 1 }, "Black coffee only": { roasted: 2, nutty: 1, sour: 1 } } },
@@ -155,13 +158,32 @@
     };
 
     let path = '', step = 0, answers = [], chartInstance = null, cafes = [];
-    const GEMINI_API_KEY = 'AIzaSyC_cDMstZ1MtHfMJ-1JlCXIXgVPY3REDLw';
-    const GEMINI_MODEL = 'gemini-1.5-flash';
 
-    function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('active'); document.getElementById('menuOverlay').classList.toggle('active'); }
-    function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
+    // --- AUTH LOGIC (FIXED) ---
     function openLogin() { document.getElementById('loginModal').style.display = 'block'; }
+    function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
     
+    function submitAuth() {
+        const email = document.getElementById('u_email').value.trim();
+        const pass = document.getElementById('u_pass').value.trim();
+        
+        if (email.includes('@') && email.length > 5) {
+            localStorage.setItem('uid', 'user_' + Date.now());
+            localStorage.setItem('uemail', email);
+            closeModal();
+            syncAuthUI();
+        } else {
+            alert("Please enter a valid email address.");
+        }
+    }
+
+    // Add "Enter" key support for login
+    document.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && document.getElementById('loginModal').style.display === 'block') {
+            submitAuth();
+        }
+    });
+
     function syncAuthUI() {
         const email = localStorage.getItem('uemail');
         document.querySelectorAll('.auth-box').forEach(b => {
@@ -170,12 +192,11 @@
     }
 
     function logout() { localStorage.clear(); location.reload(); }
-    async function submitAuth() {
-        const e = document.getElementById('u_email').value;
-        if(e.includes('@')) { localStorage.setItem('uid', 'user_1'); localStorage.setItem('uemail', e); closeModal(); syncAuthUI(); }
-    }
 
+    // --- QUIZ NAVIGATION ---
+    function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('active'); document.getElementById('menuOverlay').classList.toggle('active'); }
     function startPath(p) { path = p; step = 0; answers = []; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
+    
     function renderQuestion() {
         const q = quizPaths[path][step];
         document.getElementById('progress-bar').style.width = (step/6*100) + '%';
@@ -186,21 +207,19 @@
     }
 
     function selectOption(o) { answers.push(o); step++; if(step<6) renderQuestion(); else getAI(); }
+    function goBack() { if(step > 0) { step--; answers.pop(); renderQuestion(); } }
 
+    // --- ENGINE ---
     async function ensureData() { 
         if(cafes.length > 0) return;
         try {
             const r = await fetch('./cafes.json');
+            if(!r.ok) throw new Error();
             cafes = await r.json();
         } catch (e) {
-            cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over", district: "District 3, HCM"}];
+            console.warn("JSON error. Using fallback.");
+            cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over", beans: "Vietnam Fine Robusta", vibe: "Garden"}];
         }
-    }
-
-    // Helper to find top traits for the story
-    function getTopTraits(scores) {
-        const labels = ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"];
-        return scores.map((s, i) => ({l: labels[i], v: s})).sort((a,b) => b.v - a.v).slice(0,2).map(x => x.l);
     }
 
     async function getAI() {
@@ -208,32 +227,32 @@
         document.getElementById('loading').classList.add('active');
         await ensureData();
         
-        // 1. Calculate LOCAL SCORES (Math-based fallback)
-        let finalScores = [4, 4, 4, 4, 4, 4]; // Start at 4 base
+        // 1. Calculate LOCAL SCORES (Instantly reliable)
+        let finalScores = [4, 4, 4, 4, 4, 4]; // Base
         answers.forEach((ans, i) => {
-            const traitData = quizPaths[path][i].traits[ans];
-            if(traitData.floral) finalScores[0] += traitData.floral;
-            if(traitData.fruity) finalScores[1] += traitData.fruity;
-            if(traitData.sour) finalScores[2] += traitData.sour;
-            if(traitData.sweet) finalScores[3] += traitData.sweet;
-            if(traitData.nutty) finalScores[4] += traitData.nutty;
-            if(traitData.roasted) finalScores[5] += traitData.roasted;
+            const traits = quizPaths[path][i].traits[ans];
+            if(traits.floral) finalScores[0] += traits.floral;
+            if(traits.fruity) finalScores[1] += traits.fruity;
+            if(traits.sour) finalScores[2] += traits.sour;
+            if(traits.sweet) finalScores[3] += traits.sweet;
+            if(traits.nutty) finalScores[4] += traits.nutty;
+            if(traits.roasted) finalScores[5] += traits.roasted;
         });
         finalScores = finalScores.map(s => Math.min(10, s));
-        const traits = getTopTraits(finalScores);
 
-        // 2. Prepare Final Data Object (Default/Local version)
+        // 2. Setup Results Object with Fallback Story
         let resData = {
-            story: `Your taste journey as a ${path} explorer reveals a deep appreciation for ${traits[0]} and ${traits[1]} notes. You lean towards cafes that celebrate clarity and clean extraction over heavy processing, making you a perfect fit for Saigon's modern specialty scene.`,
+            story: `As a ${path} explorer, your palate leans towards high clarity and integrated sweetness. You appreciate cafes that balance meticulous technique with a distinct sense of place.`,
             scores: finalScores,
             cafe: cafes[0].name,
             drink: cafes[0].signature_drink
         };
 
-        // 3. Attempt Gemini API (Quietly try, but fail safely)
+        // 3. Attempt Gemini AI Enrichment
         try {
+            // Updated to v1 stable endpoint
             const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            const prompt = `Return ONLY JSON: {"story": "90 words about ${path} palate", "scores": [6 ints], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. Answers: ${answers.join(',')}`;
+            const prompt = `Return JSON ONLY: {"story": "90 word narrative about user's ${path} palate", "scores": [6 ints], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. Answers: ${answers.join(',')}`;
             
             const resp = await fetch(API_URL, {
                 method: 'POST',
@@ -247,10 +266,14 @@
                 const parsed = JSON.parse(cleanText);
                 resData.story = parsed.story || resData.story;
                 resData.scores = parsed.scores || resData.scores;
+            } else {
+                console.error("API Error Status:", resp.status);
             }
-        } catch (e) { console.warn("API 404/Error: Using high-quality local decoder."); }
+        } catch (e) {
+            console.warn("AI 404/Error: Bypassing to local decoder.");
+        }
 
-        // 4. Save and Show Results
+        // 4. Final Save & Render
         localStorage.setItem('has_profile', 'true');
         localStorage.setItem('p_story', resData.story);
         localStorage.setItem('p_scores', JSON.stringify(resData.scores));
@@ -263,13 +286,13 @@
     function showResult(story, scores, name, drink) {
         document.getElementById('loading').classList.remove('active');
         document.getElementById('result').classList.add('active');
-        document.getElementById('result-text').innerHTML = `${story}<div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;"><b>Match: ${name}</b><br><small>${drink}</small></div>`;
+        document.getElementById('result-text').innerHTML = `${story}<br><br><b>Recommended Match:</b> ${name}<br><small>${drink}</small>`;
         
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(document.getElementById('palateChart'), {
             type: 'radar',
             data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 2 }] },
-            options: { scales: { r: { suggestedMax: 10, ticks: { display: false }, grid: { color: '#f0f0f0' } } }, plugins: { legend: { display: false } } }
+            options: { scales: { r: { suggestedMax: 10, ticks: { display: false } } }, plugins: { legend: { display: false } } }
         });
     }
 
