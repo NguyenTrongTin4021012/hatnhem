@@ -188,24 +188,32 @@
 
     function selectOption(o) { answers.push(o); step++; if(step<6) renderQuestion(); else getAI(); }
 
-    async function ensureData() { if(!cafes.length) cafes = await fetch('./cafes.json').then(r => r.json()); }
+    async function ensureData() { 
+        if(cafes.length) return;
+        try {
+            const r = await fetch('./cafes.json');
+            if(!r.ok) throw new Error("File not found");
+            cafes = await r.json();
+        } catch (e) {
+            console.error("Data Load Error:", e);
+            cafes = [{name: "Every Half", signature_drink: "Pour Over", vibe: "Garden", district: "District 3, HCM"}]; // Fallback
+        }
+    }
 
     async function getAI() {
         document.getElementById('quiz-flow').classList.remove('active');
         document.getElementById('loading').classList.add('active');
         await ensureData();
         
-        const scores = [5,5,5,5,5,5]; // Baseline
-        const cafe = cafes[0];
-
         try {
-            const prompt = `User chose path ${path} and answers: ${answers.join(',')}. Data: ${JSON.stringify(cafes.slice(0,3))}. Return JSON: {story: "90 words", scores: [6 ints 1-10], cafe: "Name", drink: "Drink"}`;
+            const prompt = `User path: ${path}, answers: ${answers.join(',')}. Reference cafes: ${JSON.stringify(cafes.slice(0,3))}. Task: Return JSON only { "story": "90 words", "scores": [6 integers 1-10], "cafe": "Name from reference", "drink": "Drink" }`;
             const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
                 method: 'POST',
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
             const data = await resp.json();
-            const text = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '');
+            const text = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
             const res = JSON.parse(text);
 
             localStorage.setItem('has_profile', 'true');
@@ -216,8 +224,8 @@
 
             showResult(res.story, res.scores, res.cafe, res.drink);
         } catch (e) {
-            console.error(e);
-            showResult("A classic palate looking for balance.", scores, cafe.name, cafe.signature_drink);
+            console.error("AI Error:", e);
+            showResult("Your palate seeks balance and comfort.", [5,5,5,5,5,5], cafes[0].name, cafes[0].signature_drink);
         }
     }
 
