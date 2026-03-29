@@ -201,45 +201,90 @@
     }
 
     async function getAI() {
-        document.getElementById('quiz-flow').classList.remove('active');
-        document.getElementById('loading').classList.add('active');
-        await ensureData();
+    // 1. UI Transition
+    document.getElementById('quiz-flow').classList.remove('active');
+    document.getElementById('loading').classList.add('active');
+
+    // 2. Ensure Cafe Data is loaded
+    await ensureData();
+    
+    // Default Fallback Data (In case API or JSON fails)
+    let resData = {
+        story: "You have a balanced and curious palate, seeking the hidden gems of Saigon's coffee culture.",
+        scores: [5, 6, 5, 7, 5, 4],
+        cafe: cafes.length > 0 ? cafes[0].name : "Every Half Coffee",
+        drink: cafes.length > 0 ? cafes[0].signature_drink : "Specialty Pour Over"
+    };
+
+    try {
+        // Use v1 instead of v1beta for better stability
+        const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         
-        try {
-            const prompt = `User path: ${path}, answers: ${answers.join(',')}. Reference cafes: ${JSON.stringify(cafes.slice(0,3))}. Task: Return JSON only { "story": "90 words", "scores": [6 integers 1-10], "cafe": "Name from reference", "drink": "Drink" }`;
-            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const data = await resp.json();
-            const text = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
-            const res = JSON.parse(text);
+        const prompt = `Task: Coffee Personality Decoder. 
+        User Path: ${path}. User Answers: ${answers.join(', ')}. 
+        Reference Cafes: ${JSON.stringify(cafes.slice(0, 3))}.
+        Return ONLY a JSON object: {"story": "90 word narrative", "scores": [6 ints 1-10], "cafe": "Name", "drink": "Drink"}. 
+        Order of scores: Floral, Fruity, Sour, Sweet, Nutty, Roasted.`;
 
-            localStorage.setItem('has_profile', 'true');
-            localStorage.setItem('p_story', res.story);
-            localStorage.setItem('p_scores', JSON.stringify(res.scores));
-            localStorage.setItem('p_recs', JSON.stringify({cafe: res.cafe, drink: res.drink}));
-            localStorage.setItem('matched_cafe', res.cafe);
-
-            showResult(res.story, res.scores, res.cafe, res.drink);
-        } catch (e) {
-            console.error("AI Error:", e);
-            showResult("Your palate seeks balance and comfort.", [5,5,5,5,5,5], cafes[0].name, cafes[0].signature_drink);
-        }
-    }
-
-    function showResult(story, scores, name, drink) {
-        document.getElementById('loading').classList.remove('active');
-        document.getElementById('result').classList.add('active');
-        document.getElementById('result-text').innerHTML = `${story}<br><br><b>Match: ${name}</b><br><small>${drink}</small>`;
-        if(chartInstance) chartInstance.destroy();
-        chartInstance = new Chart(document.getElementById('palateChart'), {
-            type: 'radar',
-            data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f' }] },
-            options: { scales: { r: { suggestedMax: 10, ticks: { display: false } } }, plugins: { legend: { display: false } } }
+        const resp = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
+
+        if (!resp.ok) {
+            throw new Error(`API Hub Error: ${resp.status}`);
+        }
+
+        const data = await resp.json();
+
+        // Safety check: Does the API response actually have content?
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+            const rawText = data.candidates[0].content.parts[0].text;
+            const cleanText = rawText.replace(/```json|```/g, '').trim();
+            const parsed = JSON.parse(cleanText);
+            
+            // Update fallback with real AI data
+            resData = {
+                story: parsed.story || resData.story,
+                scores: Array.isArray(parsed.scores) ? parsed.scores : resData.scores,
+                cafe: parsed.cafe || resData.cafe,
+                drink: parsed.drink || resData.drink
+            };
+        }
+    } catch (e) {
+        console.warn("AI logic bypassed. Using local decoder logic.", e);
+        // This is where the app stays alive even if Gemini is down
     }
+
+    // 3. Save to LocalStorage for Passport
+    localStorage.setItem('has_profile', 'true');
+    localStorage.setItem('p_story', resData.story);
+    localStorage.setItem('p_scores', JSON.stringify(resData.scores));
+    localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
+    localStorage.setItem('matched_cafe', resData.cafe);
+
+    // 4. Render Results
+    showResult(resData.story, resData.scores, resData.cafe, resData.drink);
+}
+
+// Hardened Data Fetcher
+async function ensureData() { 
+    if(cafes.length > 0) return;
+    try {
+        const r = await fetch('./cafes.json');
+        if(!r.ok) throw new Error("JSON 404");
+        cafes = await r.json();
+    } catch (e) {
+        console.error("Critical: cafes.json failed to load. Using internal fallback.");
+        cafes = [{
+            "name": "Bosgaurus Coffee",
+            "district": "Binh Thanh, HCM",
+            "vibe": "Industrial Waterfront",
+            "signature_drink": "Big Bang Espresso"
+        }];
+    }
+}
 
     function resetQuiz() { location.reload(); }
     window.onload = syncAuthUI;
