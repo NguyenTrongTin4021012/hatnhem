@@ -1,3 +1,9 @@
+<!-- 
+    PROJECT: Hạt & Hẻm (Bean & Alley)
+    AUTHOR: Nguyen Trong Tin at RMIT University
+    VERSION: 2026 Build (Unified Decoder + About)
+    TECH STACK: HTML5, CSS3, JS, Chart.js, Gemini AI.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,7 +31,7 @@
         nav.desktop-nav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: var(--accent); border-radius: 999px; }
         .nav-btn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
 
-        /* Main Content */
+        /* Main Layout */
         main { margin-top: 100px; padding: 0 5% 60px; display: flex; flex-direction: column; align-items: center; }
         
         .eyebrow { display: inline-flex; padding: 8px 14px; border-radius: 999px; background: #f2e7da; color: #8a5f38; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
@@ -36,21 +42,20 @@
         .option-btn { display: block; width: 100%; padding: 20px; margin: 12px 0; border: 2px solid #f3f3f3; border-radius: 16px; cursor: pointer; background: white; font-weight: 600; text-align: center; color: var(--coffee); transition: 0.2s; font-size: 1rem; }
         .option-btn:hover { border-color: var(--accent); transform: scale(1.02); }
         .secondary-btn { border: 1px solid #e6ddd2; background: #fffaf5; color: var(--coffee); padding: 12px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        .secondary-btn:disabled { opacity: 0.4; }
-
+        
         .status-chip { padding: 6px 12px; border-radius: 999px; background: #f6efe8; color: #7a5a3d; font-size: 0.7rem; font-weight: 700; }
         #result-text { font-size: 0.95rem; line-height: 1.7; background: #fffcf5; padding: 25px; border-radius: 20px; border-left: 6px solid var(--accent); margin-bottom: 20px; }
         .loading-ring { width: 42px; height: 42px; margin: 0 auto 16px; border-radius: 50%; border: 4px solid #efe5d9; border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Combined About Section */
+        /* About Section (The Concept Pitch) */
         .about-section { width: 100%; max-width: 800px; padding: 60px 0; border-top: 1px solid #eee; }
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
         .about-card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #fcfcfc; }
         .about-card h3 { margin-top: 0; color: var(--coffee); font-size: 1.1rem; font-weight: 800; }
         .about-card p { font-size: 0.85rem; line-height: 1.6; color: #666; margin-bottom: 0; }
 
-        /* Login Modal */
+        /* Modal */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26, 18, 12, 0.85); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 15vh auto; padding: 40px; width: 90%; max-width: 400px; border-radius: 30px; }
         .ans-input { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #eee; font-size: 1rem; margin-bottom: 15px; outline: none; }
@@ -77,29 +82,29 @@
 </header>
 
 <main>
-    <!-- Decoder -->
+    <!-- Decoder Section -->
     <div style="text-align:center; padding-bottom: 40px;">
-        <div class="eyebrow">Project MVP</div>
+        <div class="eyebrow">Interactive MVP</div>
         <h1 style="margin:0; font-size: 2.5rem; font-weight: 800;">Find Your Coffee DNA</h1>
-        <p style="color: #666; max-width: 400px; margin: 15px auto;">Specialty discovery powered by deterministic AI matching.</p>
+        <p style="color: #666; max-width: 400px; margin: 15px auto;">Use our logic-driven engine to match your palate with hidden roasteries.</p>
     </div>
 
     <div class="quiz-card">
         <div class="progress-bar" id="progress-bar"></div>
         
         <div id="step-0" class="step active">
-            <h3 style="text-align:center; margin-bottom:25px;">How technical do you want to be?</h3>
-            <button class="option-btn" onclick="startPath('A')">☕ Beginner (Flavor-first)</button>
-            <button class="option-btn" onclick="startPath('B')">⚖️ Intermediate (Roast & Extraction)</button>
-            <button class="option-btn" onclick="startPath('C')">🔬 Professional (TDS & Chemistry)</button>
+            <h3 style="text-align:center; margin-bottom:25px;">Choose your level</h3>
+            <button class="option-btn" onclick="startPath('A')">☕ Beginner</button>
+            <button class="option-btn" onclick="startPath('B')">⚖️ Intermediate</button>
+            <button class="option-btn" onclick="startPath('C')">🔬 Professional</button>
         </div>
 
         <div id="quiz-flow" class="step">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <span class="status-chip" id="path-label">Path</span>
                 <span class="status-chip" id="step-label">1 of 6</span>
             </div>
-            <h3 id="question-text" style="text-align:center; margin-bottom: 25px; line-height:1.3;"></h3>
+            <h3 id="question-text" style="text-align:center; margin-bottom: 25px;"></h3>
             <div id="options-container"></div>
             <div style="margin-top:20px; text-align:center;">
                 <button id="back-btn" class="secondary-btn" onclick="goBack()" disabled>Back</button>
@@ -108,49 +113,46 @@
 
         <div id="loading" class="step" style="text-align:center; padding: 40px 0;">
             <div class="loading-ring"></div>
-            <p style="font-weight:600; color:var(--accent);">AI decoding your profile...</p>
+            <p style="font-weight:600; color:var(--accent);">AI performing palate analysis...</p>
         </div>
 
         <div id="result" class="step">
-            <h2 style="text-align:center; margin-top:0;">Your Profile</h2>
+            <h2 style="text-align:center; margin-top:0;">Your DNA</h2>
             <div id="result-text"></div>
             <canvas id="palateChart" style="max-width: 300px; margin: 0 auto;"></canvas>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:25px;">
-                <button class="secondary-btn" onclick="window.location.href='map.html'">Go to Map</button>
-                <button class="secondary-btn" onclick="window.location.href='passport.html'">Your Passport</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
+                <button class="secondary-btn" onclick="window.location.href='map.html'">Open Map</button>
+                <button class="secondary-btn" onclick="window.location.href='passport.html'">View Passport</button>
             </div>
             <button class="option-btn" style="background:var(--coffee); color:white; margin-top:15px;" onclick="location.reload()">Start Over</button>
         </div>
     </div>
 
-    <!-- About Section -->
+    <!-- About / Concept Section -->
     <section class="about-section">
         <div style="text-align: center; margin-bottom: 40px;">
-            <div class="eyebrow">Concept Presentation</div>
+            <div class="eyebrow">Project Concept</div>
             <h2 style="font-size: 2rem; font-weight: 800;">Specialty Coffee for the People</h2>
-            <p style="color:666; max-width:600px; margin:15px auto;">Hạt & Hẻm addresses the gap between technical roasting science and local discovery.</p>
+            <p style="color:666; max-width:600px; margin:15px auto;">We bridge the gap between technical roasting science and local hidden discovery.</p>
         </div>
 
         <div class="about-grid">
             <div class="about-card">
                 <h3>Authentic Problem</h3>
-                <p>Specialty coffee menus are intimidating (Hạt). Hidden gems are hard to find (Hẻm). We remove the "Bad Order" risk by matching palate to roast profile.</p>
+                <p>Specialty coffee is technical and intimidating (Hạt). Hidden roasteries are hard to find (Hẻm). We remove the "Bad Order" risk by matching DNA to roast profiles.</p>
             </div>
             <div class="about-card">
                 <h3>The MVP Strategy</h3>
-                <p>A static, high-performance web app that uses Gemini AI as a <b>Logic Engine</b> rather than just a chatbot. It translates simple cravings into technical roasting metrics.</p>
+                <p>A high-performance web app using Gemini AI as a <b>Logic Engine</b> rather than just a chatbot. It translates simple cravings into technical roasting metrics.</p>
             </div>
             <div class="about-card">
                 <h3>Visual Language</h3>
-                <p>Using <b>Chart.js</b> to visualize the "Coffee DNA" makes technical data accessible. The <b>Leaflet</b> map provides a curated, vibe-based journey through HCMC.</p>
+                <p>Using <b>Chart.js</b> to visualize the "Coffee DNA" makes technical data accessible. The <b>Leaflet</b> map provides a vibe-based journey through HCMC.</p>
             </div>
             <div class="about-card">
                 <h3>Technical Moat</h3>
-                <p>Deterministic local scoring ensures the app works even if the AI fails. The data-driven pairing logic is proprietary and district-specific.</p>
+                <p>Deterministic local scoring ensures the app works even if the API fails. The data-driven pairing logic is proprietary and district-specific.</p>
             </div>
-        </div>
-        <div style="text-align:center; margin-top:40px;">
-            <p style="font-size:0.8rem; color:#999;">Created by <b>Nguyen Trong Tin</b> for Digital Media Studio 4 (COMM2592)</p>
         </div>
     </section>
 </main>
@@ -159,11 +161,10 @@
     <p>© 2026 Nguyen Trong Tin @ RMIT University • Digital Media Studio 4 Build</p>
 </footer>
 
-<!-- Modal -->
+<!-- Login Modal -->
 <div id="loginModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0;">Explorer Login</h2>
-        <p style="font-size:0.85rem; color:#666; margin-bottom:20px;">Save your taste profile to your Passport.</p>
         <input type="email" id="u_email" class="ans-input" placeholder="Your Email">
         <button class="nav-btn" style="width:100%; padding:18px;" onclick="submitAuth()">Continue</button>
         <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:#999; cursor:pointer;">Cancel</button>
@@ -171,11 +172,26 @@
 </div>
 
 <script>
-    // --- APP LOGIC ---
+    // --- AUTH & CONFIG ---
     const GEMINI_API_KEY = 'AIzaSyC_cDMstZ1MtHfMJ-1JlCXIXgVPY3REDLw';
-    // FIXED URL FOR STABLE V1 ENDPOINT
+    // FIXED STABLE ENDPOINT
     const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
     
+    function syncAuthUI() {
+        const email = localStorage.getItem('uemail');
+        document.querySelectorAll('.auth-box').forEach(b => {
+            b.innerHTML = email ? `<button class="nav-btn" onclick="localStorage.clear(); location.reload();">Logout</button>` : `<button class="nav-btn" onclick="document.getElementById('loginModal').style.display='block'">Login</button>`;
+        });
+    }
+
+    function submitAuth() {
+        const email = document.getElementById('u_email').value;
+        if(email.includes('@')) { localStorage.setItem('uid', 'user_1'); localStorage.setItem('uemail', email); location.reload(); }
+    }
+
+    function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
+
+    // --- QUIZ DATA ---
     const quizPaths = {
         A: [
             { q: "Morning craving?", a: "Sweet", b: "Savory", c: "Black coffee only", traits: { "Sweet": { floral: 1, fruity: 1, sweet: 2 }, "Savory": { nutty: 2, roasted: 1 }, "Black coffee only": { roasted: 2, nutty: 1, sour: 1 } } },
@@ -205,19 +221,7 @@
 
     let path = '', step = 0, answers = [], chartInstance = null, cafes = [];
 
-    function syncAuthUI() {
-        const email = localStorage.getItem('uemail');
-        document.querySelectorAll('.auth-box').forEach(b => {
-            b.innerHTML = email ? `<button class="nav-btn" onclick="localStorage.clear(); location.reload();">Logout</button>` : `<button class="nav-btn" onclick="document.getElementById('loginModal').style.display='block'">Login</button>`;
-        });
-    }
-
-    function submitAuth() {
-        const email = document.getElementById('u_email').value;
-        if(email.includes('@')) { localStorage.setItem('uid', 'user_1'); localStorage.setItem('uemail', email); location.reload(); }
-    }
-
-    function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
+    // --- QUIZ FUNCTIONS ---
     function startPath(p) { path = p; step = 0; answers = []; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
     
     function renderQuestion() {
@@ -243,7 +247,7 @@
         document.getElementById('loading').classList.add('active');
         await ensureData();
         
-        // Local Scoring (Fallback logic)
+        // Local deterministic scoring logic
         let finalScores = [4, 4, 4, 4, 4, 4];
         answers.forEach((ans, i) => {
             const traits = quizPaths[path][i].traits[ans];
@@ -257,7 +261,7 @@
         finalScores = finalScores.map(s => Math.min(10, s));
 
         let resData = {
-            story: `Your taste journey as a ${path} explorer reveals a deep appreciation for character and clarity. You prefer meticulously prepared cups that highlight origin.`,
+            story: `Your taste profile as a ${path} explorer reveals a preference for character and clarity. You value craftsmanship and roasters who respect the bean's origin.`,
             scores: finalScores,
             cafe: cafes[0].name,
             drink: cafes[0].signature_drink
@@ -265,7 +269,7 @@
 
         try {
             const promptBody = {
-                contents: [{ parts: [{ text: `Task: Coffee Decoder. Return JSON only: {"story": "90 words about user's ${path} palate", "scores": [6 integers 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}` }] }]
+                contents: [{ parts: [{ text: `Task: Coffee Personality Decoder. Return JSON only: {"story": "90 words about user's ${path} coffee palate", "scores": [6 integers 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}` }] }]
             };
             
             const resp = await fetch(API_URL, {
@@ -281,7 +285,7 @@
                 resData.story = parsed.story || resData.story;
                 resData.scores = parsed.scores || resData.scores;
             }
-        } catch (e) { console.warn("AI 404/Error: Bypassing to local decoder engine."); }
+        } catch (e) { console.warn("AI logic bypassed. Using local engine."); }
 
         localStorage.setItem('has_profile', 'true');
         localStorage.setItem('p_story', resData.story);
