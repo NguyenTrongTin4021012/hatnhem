@@ -176,7 +176,6 @@
     }
 
     function startPath(p) { path = p; step = 0; answers = []; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
-    
     function renderQuestion() {
         const q = quizPaths[path][step];
         document.getElementById('progress-bar').style.width = (step/6*100) + '%';
@@ -192,12 +191,16 @@
         if(cafes.length > 0) return;
         try {
             const r = await fetch('./cafes.json');
-            if(!r.ok) throw new Error("JSON not found");
             cafes = await r.json();
         } catch (e) {
-            console.warn("JSON error, using internal backup.");
-            cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over", beans: "Vietnam Fine Robusta", vibe: "Garden"}];
+            cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over", district: "District 3, HCM"}];
         }
+    }
+
+    // Helper to find top traits for the story
+    function getTopTraits(scores) {
+        const labels = ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"];
+        return scores.map((s, i) => ({l: labels[i], v: s})).sort((a,b) => b.v - a.v).slice(0,2).map(x => x.l);
     }
 
     async function getAI() {
@@ -205,8 +208,8 @@
         document.getElementById('loading').classList.add('active');
         await ensureData();
         
-        // 1. Calculate Local Baseline Scores (Always works)
-        let finalScores = [5, 5, 5, 5, 5, 5];
+        // 1. Calculate LOCAL SCORES (Math-based fallback)
+        let finalScores = [4, 4, 4, 4, 4, 4]; // Start at 4 base
         answers.forEach((ans, i) => {
             const traitData = quizPaths[path][i].traits[ans];
             if(traitData.floral) finalScores[0] += traitData.floral;
@@ -217,19 +220,20 @@
             if(traitData.roasted) finalScores[5] += traitData.roasted;
         });
         finalScores = finalScores.map(s => Math.min(10, s));
+        const traits = getTopTraits(finalScores);
 
-        // 2. Default Local Match (Always works)
+        // 2. Prepare Final Data Object (Default/Local version)
         let resData = {
-            story: `Your taste journey as a ${path} explorer reveals a preference for clarity and depth. You lean towards balanced cups that celebrate origin character over heavy processing.`,
+            story: `Your taste journey as a ${path} explorer reveals a deep appreciation for ${traits[0]} and ${traits[1]} notes. You lean towards cafes that celebrate clarity and clean extraction over heavy processing, making you a perfect fit for Saigon's modern specialty scene.`,
             scores: finalScores,
             cafe: cafes[0].name,
             drink: cafes[0].signature_drink
         };
 
-        // 3. Try Gemini AI (May fail, but we don't care anymore!)
+        // 3. Attempt Gemini API (Quietly try, but fail safely)
         try {
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            const prompt = `Coffee decoder JSON only: {"story": "90 words about ${path} palate", "scores": [6 ints], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. Answers: ${answers.join(',')}`;
+            const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            const prompt = `Return ONLY JSON: {"story": "90 words about ${path} palate", "scores": [6 ints], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. Answers: ${answers.join(',')}`;
             
             const resp = await fetch(API_URL, {
                 method: 'POST',
@@ -244,9 +248,9 @@
                 resData.story = parsed.story || resData.story;
                 resData.scores = parsed.scores || resData.scores;
             }
-        } catch (e) { console.warn("Using Local Decoder Logic."); }
+        } catch (e) { console.warn("API 404/Error: Using high-quality local decoder."); }
 
-        // 4. Final Save & Display
+        // 4. Save and Show Results
         localStorage.setItem('has_profile', 'true');
         localStorage.setItem('p_story', resData.story);
         localStorage.setItem('p_scores', JSON.stringify(resData.scores));
@@ -259,13 +263,13 @@
     function showResult(story, scores, name, drink) {
         document.getElementById('loading').classList.remove('active');
         document.getElementById('result').classList.add('active');
-        document.getElementById('result-text').innerHTML = `${story}<br><br><b>Match: ${name}</b><br><small>${drink}</small>`;
+        document.getElementById('result-text').innerHTML = `${story}<div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;"><b>Match: ${name}</b><br><small>${drink}</small></div>`;
         
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(document.getElementById('palateChart'), {
             type: 'radar',
             data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 2 }] },
-            options: { scales: { r: { suggestedMax: 10, ticks: { display: false }, grid: { color: '#eee' } } }, plugins: { legend: { display: false } } }
+            options: { scales: { r: { suggestedMax: 10, ticks: { display: false }, grid: { color: '#f0f0f0' } } }, plugins: { legend: { display: false } } }
         });
     }
 
