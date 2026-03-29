@@ -1,7 +1,7 @@
 <!-- 
     PROJECT: Hạt & Hẻm (Bean & Alley)
     AUTHOR: Nguyen Trong Tin at RMIT University
-    TECH STACK: HTML5, CSS3, JS, Gemini AI, Chart.js.
+    TECH STACK: HTML5, CSS3, JS, Chart.js.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -27,6 +27,9 @@
         nav.desktop-nav a { color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: 0.3s; opacity: 0.8; }
         nav.desktop-nav a:hover { opacity: 1; }
         .nav-btn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        nav.desktop-nav a.current { opacity: 1; position: relative; }
+        nav.desktop-nav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: var(--accent); border-radius: 999px; }
+        .nav-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(212, 163, 115, 0.24); }
 
         .burger { display: none; cursor: pointer; flex-direction: column; gap: 6px; padding: 10px; z-index: 10010; }
         .burger div { width: 28px; height: 3px; background: white; border-radius: 5px; transition: 0.3s; }
@@ -37,20 +40,34 @@
         .mobile-menu { position: fixed; top: 0; right: -100%; width: 75%; max-width: 300px; height: 100vh; background: var(--coffee); z-index: 10008; padding: 100px 40px; display: flex; flex-direction: column; gap: 25px; transition: 0.4s; }
         .mobile-menu.active { right: 0; }
         .mobile-menu a { color: white; text-decoration: none; font-size: 1.3rem; font-weight: 700; }
+        .mobile-menu a.current { color: var(--accent); }
         #menuOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10007; display: none; opacity: 0; transition: 0.3s; }
         #menuOverlay.active { display: block; opacity: 1; }
 
         main { flex: 1; margin-top: 70px; padding: 40px 5%; display: flex; flex-direction: column; align-items: center; }
+        .eyebrow { display: inline-flex; padding: 8px 14px; border-radius: 999px; background: #f2e7da; color: #8a5f38; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
         .quiz-card { background: var(--white); padding: 40px; border-radius: 30px; box-shadow: var(--soft-shadow); width: 100%; max-width: 480px; position: relative; overflow: hidden; animation: fadeInUp 0.6s ease; }
         .progress-bar { position: absolute; top: 0; left: 0; height: 6px; background: var(--accent); width: 0%; transition: 0.4s; }
         .step { display: none; } .active { display: block; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .step-meta, .quiz-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .step-meta { margin-bottom: 18px; }
+        .helper-text { font-size: 0.82rem; color: #8a7b6f; text-align: center; margin-bottom: 20px; line-height: 1.6; }
+        .status-chip { padding: 8px 12px; border-radius: 999px; background: #f6efe8; color: #7a5a3d; font-size: 0.76rem; font-weight: 700; }
+        .step-count { font-size: 0.82rem; color: #8a7b6f; }
 
         .option-btn { display: block; width: 100%; padding: 20px; margin: 12px 0; border: 2px solid #f3f3f3; border-radius: 16px; cursor: pointer; background: white; font-weight: 600; text-align: center; color: var(--coffee); transition: 0.2s; font-size: 1rem; }
         .option-btn:hover { border-color: var(--accent); transform: scale(1.02); }
+        .secondary-btn { border: 1px solid #e6ddd2; background: #fffaf5; color: var(--coffee); padding: 12px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .secondary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         #result-text { font-size: 0.95rem; line-height: 1.7; background: #fffcf5; padding: 25px; border-radius: 20px; border-left: 6px solid var(--accent); margin-bottom: 30px; }
         #palateChart { max-width: 320px; margin: 20px auto; display: block; }
+        .loading-ring { width: 42px; height: 42px; margin: 0 auto 16px; border-radius: 50%; border: 4px solid #efe5d9; border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
+        .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .inline-link-btn { width: 100%; border: 1px solid #e6ddd2; background: #fffaf5; color: var(--coffee); padding: 14px 16px; border-radius: 14px; font-weight: 700; cursor: pointer; }
+        .feedback { min-height: 20px; margin-top: 10px; font-size: 0.82rem; color: #9a6d49; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         footer { padding: 40px 5% 60px; text-align: center; font-size: 11px; color: #8a7b6f; line-height: 1.8; opacity: 0.7; }
         footer a { color: var(--accent); text-decoration: none; font-weight: 800; }
@@ -58,8 +75,9 @@
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26, 18, 12, 0.85); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 12vh auto; padding: 40px; width: 90%; max-width: 400px; border-radius: 30px; }
         .ans-input { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #eee; font-size: 1rem; margin-bottom: 15px; outline: none; }
+        .modal-copy { color: #8a7b6f; font-size: 0.86rem; line-height: 1.6; margin: 0 0 16px; }
 
-        @media (max-width: 850px) { nav.desktop-nav { display: none; } .burger { display: flex; } }
+        @media (max-width: 850px) { nav.desktop-nav { display: none; } .burger { display: flex; } .quiz-card { padding: 30px 22px; } .result-actions { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -67,7 +85,7 @@
 <header>
     <a href="index.html" class="logo">Hạt & Hẻm</a>
     <nav class="desktop-nav">
-        <a href="index.html">Decoder</a> <a href="map.html">Explore Map</a> <a href="passport.html">Passport</a>
+        <a href="index.html" class="current">Decoder</a> <a href="map.html">Explore Map</a> <a href="passport.html">Passport</a>
         <span class="auth-box"></span>
     </nav>
     <div class="burger" onclick="toggleMenu()"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div>
@@ -75,7 +93,7 @@
 
 <div id="menuOverlay" onclick="toggleMenu()"></div>
 <div class="mobile-menu" id="mobileMenu">
-    <a href="index.html" onclick="toggleMenu()">Decoder</a>
+    <a href="index.html" class="current" onclick="toggleMenu()">Decoder</a>
     <a href="map.html" onclick="toggleMenu()">Explore Map</a>
     <a href="passport.html" onclick="toggleMenu()">Passport</a>
     <div class="auth-box"></div>
@@ -83,48 +101,121 @@
 
 <main>
     <div style="text-align:center; padding: 0 20px 40px;">
+        <div class="eyebrow">Taste Decoder</div>
         <h1 style="margin:0; font-size: 2.2rem; font-weight: 800;">Find Your Palate</h1>
-        <p style="color: #666;">AI Sommelier decoding your coffee DNA.</p>
+        <p style="color: #666;">A static tasting decoder for your coffee DNA.</p>
     </div>
 
     <div class="quiz-card">
         <div class="progress-bar" id="progress-bar"></div>
         <div id="step-0" class="step active">
+            <div class="helper-text">Choose your level first, then answer six quick prompts. No coffee expertise needed.</div>
             <h3 style="text-align:center; margin-bottom:25px;">How do you explore?</h3>
             <button class="option-btn" onclick="startPath('A')">☕ Beginner</button>
             <button class="option-btn" onclick="startPath('B')">⚖️ Intermediate</button>
             <button class="option-btn" onclick="startPath('C')">🔬 Professional</button>
         </div>
-        <div id="quiz-flow" class="step"><h3 id="question-text" style="text-align:center; margin-bottom: 30px;"></h3><div id="options-container"></div></div>
-        <div id="loading" class="step" style="text-align:center; padding: 40px 0;"><p style="font-weight:600; color:var(--accent);">Brewing Results...</p></div>
+        <div id="quiz-flow" class="step"><div class="step-meta"><span class="status-chip" id="path-label">Path</span><span class="step-count" id="step-label">Question 1 of 6</span></div><h3 id="question-text" style="text-align:center; margin-bottom: 20px;"></h3><div id="options-container"></div><div class="quiz-footer"><button id="back-btn" class="secondary-btn" onclick="goBack()" disabled>Back</button><span class="status-chip" id="micro-copy">Trust your first instinct</span></div></div>
+        <div id="loading" class="step" style="text-align:center; padding: 40px 0;"><div class="loading-ring"></div><p style="font-weight:600; color:var(--accent); margin:0;">Brewing Results...</p><p style="font-size:0.82rem; color:#8a7b6f;">Matching your answers with flavor notes and HCMC cafes.</p></div>
         <div id="result" class="step">
             <h2 style="text-align:center; margin-top:0;">Your DNA</h2>
             <div id="result-text"></div>
             <canvas id="palateChart"></canvas>
-            <button class="option-btn" style="background:var(--coffee); color:white; margin-top:20px;" onclick="location.reload()">Retake</button>
+            <div class="result-actions"><button class="inline-link-btn" onclick="window.location.href='map.html'">Open Map</button><button class="inline-link-btn" onclick="window.location.href='passport.html'">Open Passport</button></div>
+            <button class="option-btn" style="background:var(--coffee); color:white; margin-top:20px;" onclick="resetQuiz()">Retake</button>
         </div>
     </div>
 </main>
 
 <footer>
     <p>© 2024 Nguyen Trong Tin at RMIT University</p>
-    <p>AI Sommelier powered by Google Gemini • Data © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> • Maps by <a href="https://carto.com/" target="_blank">CARTO</a></p>
+    <p>Taste Decoder • Data © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> • Maps by <a href="https://carto.com/" target="_blank">CARTO</a></p>
 </footer>
 
 <div id="loginModal" class="modal">
     <div class="modal-content">
         <h2 id="modalTitle" style="margin-top:0;">Welcome</h2>
+        <p class="modal-copy">This is a simple browser-only profile so your passport can stay on this device while you explore.</p>
         <input type="email" id="u_email" class="ans-input" placeholder="Email">
         <input type="password" id="u_pass" class="ans-input" placeholder="Password">
         <button class="nav-btn" style="width:100%; padding:18px;" onclick="submitAuth()">Continue</button>
+        <div class="feedback" id="authNote"></div>
         <p onclick="toggleAuth()" id="toggleText" style="text-align:center; cursor:pointer; margin-top:20px; color:var(--accent);">Sign Up</p>
         <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:#999; cursor:pointer;">Cancel</button>
     </div>
 </div>
 
 <script>
-    const i18n = { en: { q_a: [{q:"Morning craving?", a:"🥐 Sweet", b:"🥓 Savory"},{q:"Fruit?", a:"🍋 Tart", b:"🍓 Sweet"},{q:"Texture?", a:"🍵 Tea", b:"🥛 Milk"},{q:"Snack?", a:"🥜 Nuts", b:"🍫 Cocoa"},{q:"Vibe?", a:"✨ Bright", b:"☁️ Cozy"},{q:"Goal?", a:"🌱 Gentle", b:"⚡ Kick"}] } };
-    let path = '', step = 0, answers = [], isLoginMode = true;
+    const quizPaths = {
+        A: [
+            { q: "Morning craving?", a: "Sweet", b: "Savory", c: "Black coffee only", traits: { "Sweet": { floral: 1, fruity: 1, sweet: 2 }, "Savory": { nutty: 2, roasted: 1 }, "Black coffee only": { roasted: 2, nutty: 1, sour: 1 } } },
+            { q: "Fruit note?", a: "Tart", b: "Juicy", c: "Stone fruit", traits: { "Tart": { floral: 1, fruity: 2, sour: 2 }, "Juicy": { fruity: 2, sweet: 1 }, "Stone fruit": { fruity: 2, sweet: 1, floral: 1 } } },
+            { q: "Texture?", a: "Tea-like", b: "Milky", c: "Syrupy", traits: { "Tea-like": { floral: 2, fruity: 1, sour: 1 }, "Milky": { sweet: 1, nutty: 2, roasted: 1 }, "Syrupy": { sweet: 1, roasted: 2, nutty: 1 } } },
+            { q: "Snack pairing?", a: "Nuts", b: "Cocoa", c: "Citrus pastry", traits: { "Nuts": { nutty: 3, roasted: 1 }, "Cocoa": { sweet: 1, nutty: 1, roasted: 3 }, "Citrus pastry": { floral: 1, fruity: 2, sour: 1 } } },
+            { q: "Room mood?", a: "Bright", b: "Cozy", c: "Minimal and focused", traits: { "Bright": { floral: 2, fruity: 2, sour: 1 }, "Cozy": { sweet: 1, nutty: 2, roasted: 2 }, "Minimal and focused": { floral: 1, sour: 1, roasted: 1 } } },
+            { q: "Energy goal?", a: "Gentle", b: "Kick", c: "Long steady session", traits: { "Gentle": { floral: 1, fruity: 1, sweet: 1 }, "Kick": { roasted: 2, sour: 1, nutty: 1 }, "Long steady session": { sweet: 1, nutty: 1, fruity: 1 } } }
+        ],
+        B: [
+            { q: "Preferred roast style?", a: "Light-medium clarity", b: "Medium-dark comfort", c: "Omni roast balance", traits: { "Light-medium clarity": { floral: 2, fruity: 2, sour: 1 }, "Medium-dark comfort": { sweet: 1, nutty: 2, roasted: 2 }, "Omni roast balance": { sweet: 2, fruity: 1, nutty: 1 } } },
+            { q: "What acidity feels best?", a: "Citric / malic", b: "Low-acid chocolate", c: "Winey fruit", traits: { "Citric / malic": { floral: 1, fruity: 2, sour: 2 }, "Low-acid chocolate": { sweet: 1, nutty: 2, roasted: 1 }, "Winey fruit": { fruity: 2, sweet: 2, sour: 1 } } },
+            { q: "Preferred extraction style?", a: "Filter clarity", b: "Espresso body", c: "Milk drink balance", traits: { "Filter clarity": { floral: 2, fruity: 1, sour: 1 }, "Espresso body": { sweet: 1, nutty: 1, roasted: 2 }, "Milk drink balance": { sweet: 2, roasted: 1, nutty: 1 } } },
+            { q: "Target mouthfeel?", a: "Silky and clean", b: "Dense and syrupy", c: "Creamy but structured", traits: { "Silky and clean": { floral: 1, fruity: 1, sour: 1 }, "Dense and syrupy": { sweet: 1, nutty: 2, roasted: 2 }, "Creamy but structured": { sweet: 2, nutty: 1, roasted: 1 } } },
+            { q: "Process bias?", a: "Washed and clean", b: "Natural and expressive", c: "Honey / mixed processing", traits: { "Washed and clean": { floral: 2, fruity: 1, sour: 1 }, "Natural and expressive": { fruity: 2, sweet: 2, roasted: 1 }, "Honey / mixed processing": { sweet: 2, fruity: 1, nutty: 1 } } },
+            { q: "What are you optimizing for?", a: "Balance and sweetness", b: "Intensity and structure", c: "Transparency and terroir", traits: { "Balance and sweetness": { sweet: 2, fruity: 1, nutty: 1 }, "Intensity and structure": { roasted: 2, sour: 1, nutty: 1 }, "Transparency and terroir": { floral: 2, fruity: 1, sour: 1 } } }
+        ],
+        C: [
+            { q: "Preferred roast development?", a: "Shorter development / high clarity", b: "Longer development / higher solubility", c: "Moderate development / higher sweetness", traits: { "Shorter development / high clarity": { floral: 2, fruity: 2, sour: 1 }, "Longer development / higher solubility": { sweet: 1, nutty: 2, roasted: 2 }, "Moderate development / higher sweetness": { sweet: 2, fruity: 1, nutty: 1 } } },
+            { q: "Cup structure target?", a: "Transparent high-acid extraction", b: "Lower-acid high-body extraction", c: "Integrated acidity with long sweetness", traits: { "Transparent high-acid extraction": { floral: 1, fruity: 2, sour: 2 }, "Lower-acid high-body extraction": { sweet: 1, nutty: 2, roasted: 1 }, "Integrated acidity with long sweetness": { sweet: 2, fruity: 1, sour: 1 } } },
+            { q: "Brew preference?", a: "Fast-flow filter / low agitation", b: "Tighter espresso ratio / longer contact", c: "Turbo-style extraction / higher EY", traits: { "Fast-flow filter / low agitation": { floral: 2, fruity: 1, sour: 1 }, "Tighter espresso ratio / longer contact": { sweet: 1, nutty: 1, roasted: 2 }, "Turbo-style extraction / higher EY": { fruity: 1, sweet: 1, sour: 2 } } },
+            { q: "Target tactile result?", a: "High-extraction clarity", b: "Heavy TDS and texture", c: "Velvety but clean finish", traits: { "High-extraction clarity": { floral: 1, fruity: 1, sour: 2 }, "Heavy TDS and texture": { sweet: 1, nutty: 2, roasted: 2 }, "Velvety but clean finish": { sweet: 2, fruity: 1, nutty: 1 } } },
+            { q: "Origin / process bias?", a: "Washed high-elevation lots", b: "Natural / anaerobic lots", c: "Experimental but controlled fermentation", traits: { "Washed high-elevation lots": { floral: 2, fruity: 1, sour: 1 }, "Natural / anaerobic lots": { fruity: 2, sweet: 2, roasted: 1 }, "Experimental but controlled fermentation": { fruity: 2, sour: 1, sweet: 1 } } },
+            { q: "Dial-in priority?", a: "Sweetness and clarity", b: "Texture and roast structure", c: "Acidity articulation and finish", traits: { "Sweetness and clarity": { sweet: 2, fruity: 1, floral: 1 }, "Texture and roast structure": { roasted: 2, nutty: 1, sour: 1 }, "Acidity articulation and finish": { sour: 2, floral: 1, fruity: 1 } } }
+        ]
+    };
+    let path = '', step = 0, answers = [], isLoginMode = true, chartInstance = null;
+    let cafes = [];
+    const answerTraits = [
+        {
+            "🥐 Sweet": { floral: 1, fruity: 1, sweet: 2 },
+            "🥓 Savory": { nutty: 2, roasted: 1 }
+        },
+        {
+            "🍋 Tart": { floral: 1, fruity: 2, sour: 2 },
+            "🍓 Sweet": { fruity: 1, sweet: 2 }
+        },
+        {
+            "🍵 Tea": { floral: 2, fruity: 1, sour: 1 },
+            "🥛 Milk": { sweet: 1, nutty: 2, roasted: 1 }
+        },
+        {
+            "🥜 Nuts": { nutty: 3, roasted: 1 },
+            "🍫 Cocoa": { sweet: 1, nutty: 1, roasted: 3 }
+        },
+        {
+            "✨ Bright": { floral: 2, fruity: 2, sour: 1 },
+            "☁️ Cozy": { sweet: 1, nutty: 2, roasted: 2 }
+        },
+        {
+            "🌱 Gentle": { floral: 1, fruity: 1, sweet: 1 },
+            "⚡ Kick": { roasted: 2, sour: 1, nutty: 1 }
+        }
+    ];
+
+    const cafeProfiles = {
+        "Bosgaurus Coffee": [3, 4, 3, 7, 8, 6],
+        "The Workshop Coffee": [8, 7, 6, 5, 4, 3],
+        "XLIII Coffee (HCM)": [6, 5, 4, 4, 3, 8],
+        "Every Half Coffee Roasters Tu Xuong": [5, 5, 4, 6, 6, 5],
+        "Soul Specialty Coffee": [7, 6, 5, 5, 4, 4],
+        "96B cafe & roastery": [6, 6, 5, 5, 5, 5],
+        "Tonkin Specialty Coffee": [3, 4, 3, 7, 6, 5],
+        "Amazing Specialty Coffee": [6, 6, 5, 4, 4, 4],
+        "43 Factory Coffee": [7, 8, 5, 4, 3, 5]
+    };
+    const pathNames = { A: 'Beginner', B: 'Intermediate', C: 'Professional' };
+    const stepEncouragement = ['Trust your first instinct', 'Pick the note you would order', 'Texture matters more than rules', 'Choose the finish you would revisit', 'Imagine the room you want to sit in', 'End with the energy you want'];
+    const GEMINI_API_KEY = 'AIzaSyC_cDMstZ1MtHfMJ-1JlCXIXgVPY3REDLw';
+    const GEMINI_MODEL = 'gemini-2.5-flash';
 
     function toggleMenu() {
         const m = document.getElementById('mobileMenu'), o = document.getElementById('menuOverlay'), b = document.querySelector('.burger');
@@ -132,53 +223,252 @@
         document.body.style.overflow = m.classList.contains('active') ? 'hidden' : 'auto';
     }
 
-    function openLogin() { document.getElementById('loginModal').style.display = 'block'; }
+    function closeMenu() {
+        const m = document.getElementById('mobileMenu'), o = document.getElementById('menuOverlay'), b = document.querySelector('.burger');
+        m.classList.remove('active'); o.classList.remove('active'); b.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    function openLogin() { document.getElementById('loginModal').style.display = 'block'; document.getElementById('authNote').innerText = ''; }
     function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
-    function toggleAuth() { isLoginMode = !isLoginMode; document.getElementById('modalTitle').innerText = isLoginMode ? "Login" : "Sign Up"; }
+    function toggleAuth() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('modalTitle').innerText = isLoginMode ? "Login" : "Sign Up";
+        document.getElementById('toggleText').innerText = isLoginMode ? "Sign Up" : "Back to Login";
+        document.getElementById('authNote').innerText = isLoginMode ? "Welcome back." : "Profile data stays only in this browser.";
+    }
 
     async function submitAuth() {
-        const email = document.getElementById('u_email').value;
-        localStorage.setItem('uid', 'demo_123'); localStorage.setItem('uemail', email); location.reload();
+        const email = document.getElementById('u_email').value.trim();
+        if (!email || !email.includes('@')) {
+            document.getElementById('authNote').innerText = 'Enter a valid email to continue.';
+            return;
+        }
+        localStorage.setItem('uid', 'demo_123'); localStorage.setItem('uemail', email); closeModal(); syncAuthUI();
     }
 
-    function startPath(p) { path = p; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
+    function syncAuthUI() {
+        const uid = localStorage.getItem('uid');
+        document.querySelectorAll('.auth-box').forEach(b => {
+            b.innerHTML = uid ? `<button class="nav-btn" onclick="logout()">Logout</button>` : `<button class="nav-btn" onclick="openLogin()">Login</button>`;
+        });
+    }
+
+    function logout() {
+        localStorage.removeItem('uid');
+        localStorage.removeItem('uemail');
+        syncAuthUI();
+    }
+
+    function updateStepMeta() {
+        document.getElementById('path-label').innerText = pathNames[path] || 'Path';
+        document.getElementById('step-label').innerText = `Question ${step + 1} of 6`;
+        document.getElementById('micro-copy').innerText = stepEncouragement[step] || 'Trust your first instinct';
+        document.getElementById('back-btn').disabled = step === 0;
+    }
+
+    function startPath(p) { path = p; step = 0; answers = []; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
     function renderQuestion() {
-        const q = i18n.en.q_a[step];
+        const q = quizPaths[path][step];
         document.getElementById('progress-bar').style.width = ((step)/6)*100 + '%';
         document.getElementById('question-text').innerText = q.q;
-        document.getElementById('options-container').innerHTML = `<button class="option-btn" onclick="selectOption('${q.a}')">${q.a}</button><button class="option-btn" onclick="selectOption('${q.b}')">${q.b}</button>`;
+        const options = [q.a, q.b, q.c].filter(Boolean);
+        document.getElementById('options-container').innerHTML = options.map((option) => `<button class="option-btn" onclick="selectOption(${JSON.stringify(option)})">${option}</button>`).join('');
+        updateStepMeta();
     }
+    function goBack() { if (step === 0) return; answers.pop(); step--; renderQuestion(); }
     function selectOption(v) { answers.push(v); step++; if(step<6) renderQuestion(); else { document.getElementById('progress-bar').style.width = '100%'; getAI(); } }
+
+    function buildScores() {
+        const traits = { floral: 2, fruity: 2, sour: 2, sweet: 2, nutty: 2, roasted: 2 };
+        answers.forEach((answer, index) => {
+            const mappedTraits = quizPaths[path][index].traits[answer];
+            Object.entries(mappedTraits).forEach(([trait, value]) => {
+                traits[trait] += value;
+            });
+        });
+
+        if (path === 'A') traits.sweet += 1;
+        if (path === 'B') {
+            traits.fruity += 1;
+            traits.nutty += 1;
+        }
+        if (path === 'C') {
+            traits.floral += 1;
+            traits.sour += 1;
+            traits.roasted += 1;
+        }
+
+        return [
+            Math.min(10, traits.floral),
+            Math.min(10, traits.fruity),
+            Math.min(10, traits.sour),
+            Math.min(10, traits.sweet),
+            Math.min(10, traits.nutty),
+            Math.min(10, traits.roasted)
+        ];
+    }
+
+    function chooseCafe(scores) {
+        if (!cafes.length) {
+            return {
+                name: "Your neighborhood cafe",
+                signature_drink: "House Special",
+                beans: "Seasonal beans",
+                vibe: "Comfortable and welcoming"
+            };
+        }
+
+        let bestCafe = cafes[0];
+        let bestDistance = Infinity;
+
+        cafes.forEach((cafe) => {
+            const profile = cafeProfiles[cafe.name] || [5, 5, 5, 5, 5, 5];
+            const distance = profile.reduce((sum, value, index) => sum + Math.abs(value - scores[index]), 0);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestCafe = cafe;
+            }
+        });
+
+        return bestCafe;
+    }
+
+    function getTopCafeCandidates(scores, limit = 3) {
+        return cafes
+            .map((cafe) => {
+                const profile = cafeProfiles[cafe.name] || [5, 5, 5, 5, 5, 5];
+                const distance = profile.reduce((sum, value, index) => sum + Math.abs(value - scores[index]), 0);
+                return { cafe, distance };
+            })
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, limit)
+            .map((item) => item.cafe);
+    }
+
+    function topTraits(scores) {
+        const labels = ["floral", "fruity", "vibrant", "sweet", "nutty", "roasted"];
+        return scores
+            .map((value, index) => ({ label: labels[index], value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 2)
+            .map((item) => item.label);
+    }
+
+    function buildStory(scores, cafe) {
+        const profileNames = {
+            A: "curious comfort-seeker",
+            B: "balanced flavor explorer",
+            C: "precision-driven coffee hunter"
+        };
+        const [first, second] = topTraits(scores);
+        return `You taste like a ${profileNames[path]} with a ${first} and ${second} palate. You lean toward ${cafe.vibe.toLowerCase()} spaces and cups that feel memorable without being intimidating. Start with ${cafe.signature_drink}, then branch into ${cafe.beans} when you want to push your palate a little further.`;
+    }
+
+    async function generateGeminiResult(scores, fallbackCafe) {
+        const candidateCafes = getTopCafeCandidates(scores, 3);
+        const prompt = [
+            `Difficulty: ${pathNames[path]}`,
+            `Answers: ${answers.join(' | ')}`,
+            `Base flavor scores: ${JSON.stringify(scores)}`,
+            `Candidate cafes: ${JSON.stringify(candidateCafes.map((cafe) => ({ name: cafe.name, vibe: cafe.vibe, signature_drink: cafe.signature_drink, beans: cafe.beans, district: cafe.district })))}`,
+            'Return JSON only with keys: story, scores, cafe, drink, bean.',
+            'story must be 60-90 words, vivid but concise.',
+            'scores must be an array of 6 integers from 1 to 10 in this order: Floral, Fruity, Sour, Sweet, Nutty, Roasted.',
+            'cafe must match exactly one cafe name from Candidate cafes.',
+            'drink must match that cafe signature_drink and bean should fit that cafe beans.'
+        ].join('\n');
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': GEMINI_API_KEY
+            },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: 'application/json'
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Gemini request failed with ${response.status}`);
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('').trim();
+        const parsed = JSON.parse(text);
+        const matchedCafe = candidateCafes.find((cafe) => cafe.name === parsed.cafe) || fallbackCafe;
+
+        return {
+            story: parsed.story || buildStory(scores, matchedCafe),
+            scores: Array.isArray(parsed.scores) && parsed.scores.length === 6 ? parsed.scores.map((value) => Math.max(1, Math.min(10, Number(value) || 5))) : scores,
+            cafe: matchedCafe.name,
+            drink: parsed.drink || matchedCafe.signature_drink,
+            bean: parsed.bean || matchedCafe.beans
+        };
+    }
+
+    async function ensureCafeData() {
+        if (cafes.length) return;
+        try {
+            const response = await fetch('./cafes.json');
+            cafes = await response.json();
+        } catch (error) {
+            cafes = [];
+        }
+    }
 
     async function getAI() {
         document.getElementById('quiz-flow').classList.remove('active'); document.getElementById('loading').classList.add('active');
-        
-        // --- GITHUB CONFIG: DIRECT Gemini Call ---
-        const API_KEY = "AIzaSyAkBW4PoPx9wZ_IA0KvHnMdqcgO47ynH-w"; // Your shared key
-        const prompt = `Answers: ${answers.join(',')}. JSON only: {"story":"50 words", "scores":[6 numbers 1-10], "cafe":"Name", "drink":"Drink", "bean":"Bean"}`;
-
         try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const d = await res.json();
-            const raw = d.candidates[0].content.parts[0].text;
-            const resData = JSON.parse(raw.includes("```json") ? raw.split("```json")[1].split("```")[0] : raw);
+            await ensureCafeData();
+            const scores = buildScores();
+            const cafe = chooseCafe(scores);
+            let resData;
+            try {
+                resData = await generateGeminiResult(scores, cafe);
+            } catch (geminiError) {
+                resData = {
+                    story: buildStory(scores, cafe),
+                    scores,
+                    cafe: cafe.name,
+                    drink: cafe.signature_drink,
+                    bean: cafe.beans
+                };
+            }
             
-            localStorage.setItem('has_profile','true'); localStorage.setItem('p_story', resData.story); localStorage.setItem('p_scores', JSON.stringify(resData.scores)); localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink, bean: resData.bean}));
+            localStorage.setItem('has_profile','true'); localStorage.setItem('p_story', resData.story); localStorage.setItem('p_scores', JSON.stringify(resData.scores)); localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink, bean: resData.bean})); localStorage.setItem('matched_cafe', resData.cafe);
             
             document.getElementById('loading').classList.remove('active'); document.getElementById('result').classList.add('active');
             document.getElementById('result-text').innerHTML = `${resData.story}<div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;"><b style="color:var(--accent)">MATCH: ${resData.cafe}</b><br><small>${resData.drink}</small></div>`;
-            new Chart(document.getElementById('palateChart'), { type: 'radar', data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: resData.scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 3 }] }, options: { scales: { r: { suggestedMax: 10, ticks: { display: false } } }, plugins: { legend: { display: false } } } });
-        } catch(e) { location.reload(); }
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(document.getElementById('palateChart'), { type: 'radar', data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: resData.scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 3 }] }, options: { scales: { r: { suggestedMax: 10, ticks: { display: false } } }, plugins: { legend: { display: false } } } });
+        } catch(e) { document.getElementById('loading').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); document.getElementById('micro-copy').innerText = 'Something went wrong. Please try again.'; }
     }
 
-    window.onload = () => {
-        const uid = localStorage.getItem('uid');
-        document.querySelectorAll('.auth-box').forEach(b => {
-            b.innerHTML = uid ? `<button class="nav-btn" onclick="localStorage.clear(); location.reload();">Logout</button>` : `<button class="nav-btn" onclick="openLogin()">Login</button>`;
-        });
+    function resetQuiz() {
+        path = '';
+        step = 0;
+        answers = [];
+        document.getElementById('progress-bar').style.width = '0%';
+        document.getElementById('result').classList.remove('active');
+        document.getElementById('loading').classList.remove('active');
+        document.getElementById('quiz-flow').classList.remove('active');
+        document.getElementById('step-0').classList.add('active');
+        if (chartInstance) {
+            chartInstance.destroy();
+            chartInstance = null;
+        }
+    }
+
+    window.onload = async () => {
+        await ensureCafeData();
+        syncAuthUI();
+        document.getElementById('loginModal').addEventListener('click', (event) => { if (event.target.id === 'loginModal') closeModal(); });
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeModal(); closeMenu(); } });
     };
 </script>
 </body>

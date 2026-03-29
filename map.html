@@ -22,66 +22,299 @@
         header { flex-shrink:0; background: rgba(61, 43, 31, 0.98); backdrop-filter: blur(10px); color: white; padding: 0 5%; display: flex; justify-content: space-between; align-items: center; height: 70px; z-index: 10005; }
         .logo { font-size: 1.2rem; font-weight: 800; text-decoration: none; color: white; }
         nav.desktop-nav { display: flex; align-items: center; gap: 25px; }
-        nav.desktop-nav a { color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8; }
+        nav.desktop-nav a { color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8; position: relative; }
+        nav.desktop-nav a.current { opacity: 1; }
+        nav.desktop-nav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: var(--accent); border-radius: 999px; }
         .nav-btn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .burger { display: none; cursor: pointer; flex-direction: column; gap: 6px; padding: 10px; z-index: 10010; background: transparent; border: none; }
+        .burger div { width: 28px; height: 3px; background: white; border-radius: 5px; transition: 0.3s; }
+        .burger.active .line1 { transform: rotate(45deg) translate(6px, 6px); }
+        .burger.active .line2 { opacity: 0; }
+        .burger.active .line3 { transform: rotate(-45deg) translate(6px, -6px); }
+        .mobile-menu { position: fixed; top: 0; right: -100%; width: 75%; max-width: 300px; height: 100vh; background: var(--coffee); z-index: 10008; padding: 100px 32px; display: flex; flex-direction: column; gap: 24px; transition: 0.35s; }
+        .mobile-menu.active { right: 0; }
+        .mobile-menu a { color: white; text-decoration: none; font-size: 1.15rem; font-weight: 700; }
+        .mobile-menu a.current { color: var(--accent); }
+        #menuOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10007; display: none; opacity: 0; transition: 0.3s; }
+        #menuOverlay.active { display: block; opacity: 1; }
 
         #map { flex: 1; width: 100%; z-index: 1; }
         .controls { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 5px; border-radius: 50px; display: flex; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
         .mode-btn { border: none; padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: 800; font-size: 0.7rem; color: #999; }
         .mode-btn.active { background: var(--coffee); color: white; }
 
+        .detail-panel {
+            position: absolute;
+            z-index: 1001;
+            width: 320px;
+            max-height: 360px;
+            overflow-y: auto;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            box-shadow: 0 18px 50px rgba(61, 43, 31, 0.16);
+            padding: 22px;
+            display: none;
+        }
+        .detail-panel.visible { display: block; }
+        .detail-panel::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 30px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255,255,255,0.96);
+            transform: rotate(45deg);
+            border-radius: 4px;
+        }
+        .detail-kicker { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+        .detail-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: #f3ece5;
+            color: var(--coffee);
+            font-weight: 800;
+            cursor: pointer;
+        }
         .city-jump { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(255,255,255,0.9); padding: 10px 20px; border-radius: 50px; display: flex; gap: 15px; overflow-x: auto; max-width: 90%; white-space: nowrap; backdrop-filter: blur(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .city-link { font-size: 0.65rem; font-weight: 800; color: var(--coffee); cursor: pointer; opacity: 0.6; }
         
         .map-footer { flex-shrink: 0; background: var(--white); padding: 10px 5%; font-size: 9px; color: #8a7b6f; border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; z-index: 10006; }
+        .popup-card { min-width: 240px; max-width: 260px; line-height: 1.55; color: var(--coffee); }
+        .popup-title { font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+        .popup-meta { font-size: 10px; opacity: 0.65; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+        .popup-line { font-size: 11px; margin: 4px 0 0; }
+        .popup-note { font-size: 11px; margin: 10px 0 0; padding-top: 10px; border-top: 1px solid #eee7df; color: #64564b; }
+        .popup-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .popup-tag { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: #f6efe8; color: #7a5a3d; }
+        @media (max-width: 850px) {
+            nav.desktop-nav { display: none; }
+            .burger { display: flex; }
+            .detail-panel {
+                top: auto;
+                right: 12px;
+                left: 12px;
+                bottom: 96px;
+                width: auto;
+                max-height: 42vh;
+                border-radius: 24px;
+                padding: 20px;
+            }
+            .detail-panel::before { display: none; }
+        }
     </style>
 </head>
 <body>
 <header>
     <a href="index.html" class="logo">Hạt & Hẻm</a>
     <nav class="desktop-nav">
-        <a href="index.html">Decoder</a> <a href="map.html">Explore Map</a> <a href="passport.html">Passport</a>
+        <a href="index.html">Decoder</a> <a href="map.html" class="current">Explore Map</a> <a href="passport.html">Passport</a>
         <span class="auth-box"></span>
     </nav>
+    <button class="burger" onclick="toggleMenu()" aria-label="Toggle menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></button>
 </header>
+<div id="menuOverlay" onclick="toggleMenu()"></div>
+<div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" onclick="toggleMenu()">Decoder</a>
+    <a href="map.html" class="current" onclick="toggleMenu()">Explore Map</a>
+    <a href="passport.html" onclick="toggleMenu()">Passport</a>
+    <div class="auth-box"></div>
+</div>
 <div class="controls">
     <button id="h1" class="mode-btn active" onclick="setMode('hem')">Hẻm Mode</button>
     <button id="h2" class="mode-btn" onclick="setMode('hat')">Hạt Mode</button>
 </div>
 <div id="map"></div>
+<aside id="detailPanel" class="detail-panel">
+    <div class="detail-kicker">Map Guide</div>
+    <button class="detail-close" onclick="clearSelection()" aria-label="Close details">x</button>
+    <div id="detailPanelContent"></div>
+</aside>
 <div class="city-jump">
-    <span class="city-link" onclick="flyTo([21.02, 105.85])">HÀ NỘI</span>
-    <span class="city-link" onclick="flyTo([16.05, 108.20])">ĐÀ NẴNG</span>
-    <span class="city-link" onclick="flyTo([11.94, 108.45])">ĐÀ LẠT</span>
-    <span class="city-link" onclick="flyTo([10.77, 106.70])">HCM</span>
+    <span class="city-link" onclick="flyTo([10.776, 106.700], 13)">CITY CENTER</span>
+    <span class="city-link" onclick="flyTo([10.7745, 106.7026], 16)">DISTRICT 1</span>
+    <span class="city-link" onclick="flyTo([10.7935, 106.7075], 16)">BINH THANH</span>
 </div>
 <footer class="map-footer">
     <div>© 2024 Nguyen Trong Tin @ RMIT University</div>
-    <div>Data © OpenStreetMap | Powered by Gemini AI</div>
+    <div>Data © OpenStreetMap | Static GitHub Pages build</div>
 </footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 <script>
-    let map, markerCluster, mode = 'hem', cafeData = [];
+    let map, markerCluster, mode = 'hem', cafeData = [], selectedCafe = null, selectedLatLng = null;
+
+    function isHcmCafe(cafe) {
+        return (cafe.district || '').toUpperCase().includes('HCM');
+    }
+
+    function toggleMenu() {
+        const menu = document.getElementById('mobileMenu');
+        const overlay = document.getElementById('menuOverlay');
+        const burger = document.querySelector('.burger');
+        menu.classList.toggle('active');
+        overlay.classList.toggle('active');
+        burger.classList.toggle('active');
+        document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
+    }
+
+    function closeMenu() {
+        document.getElementById('mobileMenu').classList.remove('active');
+        document.getElementById('menuOverlay').classList.remove('active');
+        document.querySelector('.burger').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function syncAuthUI() {
+        const uid = localStorage.getItem('uid');
+        document.querySelectorAll('.auth-box').forEach((box) => {
+            box.innerHTML = uid ? `<button class="nav-btn" onclick="logout()">Logout</button>` : `<button class="nav-btn" onclick="window.location.href='index.html'">Login</button>`;
+        });
+    }
+
+    function logout() {
+        localStorage.removeItem('uid');
+        localStorage.removeItem('uemail');
+        syncAuthUI();
+    }
+
     function init() {
-        map = L.map('map', {zoomControl: false, preferCanvas: true, attributionControl: false}).setView([15.8, 108.0], 6);
+        map = L.map('map', {zoomControl: false, preferCanvas: true, attributionControl: false}).setView([10.776, 106.700], 12);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
         markerCluster = L.markerClusterGroup({ maxClusterRadius: 50 });
+        map.on('move zoom', () => {
+            if (selectedCafe && selectedLatLng) positionDetailPanel();
+        });
+        map.on('click', () => clearSelection());
         load();
     }
     async function load() {
-        const res = await fetch('./cafes.json'); cafeData = await res.json();
+        const res = await fetch('./cafes.json');
+        cafeData = (await res.json()).filter(isHcmCafe);
         renderMarkers();
     }
-    function getPopupHtml(c) {
-        if(mode === 'hem') return `<div style="min-width:180px"><b>${c.name}</b><p style="font-size:11px; margin:4px 0;">📍 ${c.address}</p><small>✨ ${c.vibe}</small></div>`;
-        else return `<div style="min-width:180px"><b>${c.name} (Tech)</b><p style="font-size:11px; margin:4px 0;">⚙️ ${c.machine}</p><p style="font-size:11px; margin:4px 0;">💧 ${c.tds}</p></div>`;
+    function formatOptionalLine(icon, value) {
+        if (!value) return '';
+        return `<p class="popup-line">${icon} ${value}</p>`;
+    }
+    function formatLink(url, label) {
+        if (!url || url === '#') return '';
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin:8px 8px 0 0; color:var(--accent); font-size:11px; font-weight:800; text-decoration:none;">${label}</a>`;
+    }
+    function formatTags(tags) {
+        if (!tags || !tags.length) return '';
+        return `<div class="popup-tags">${tags.slice(0, 4).map(tag => `<span class="popup-tag">${tag}</span>`).join('')}</div>`;
+    }
+    function positionDetailPanel() {
+        if (!selectedLatLng) return;
+
+        const panel = document.getElementById('detailPanel');
+        const mapRect = map.getContainer().getBoundingClientRect();
+
+        if (window.innerWidth <= 850) {
+            panel.style.left = '12px';
+            panel.style.right = '12px';
+            panel.style.top = 'auto';
+            return;
+        }
+
+        const point = map.latLngToContainerPoint(selectedLatLng);
+        const panelWidth = panel.offsetWidth;
+        const panelHeight = panel.offsetHeight;
+        const gap = 26;
+        const padding = 18;
+        const desiredLeft = mapRect.left + point.x + gap;
+        const maxLeft = window.innerWidth - panelWidth - padding;
+        const clampedLeft = Math.max(mapRect.left + padding, Math.min(desiredLeft, maxLeft));
+        const desiredTop = mapRect.top + point.y - (panelHeight / 2);
+        const minTop = mapRect.top + 16;
+        const maxTop = mapRect.bottom - panelHeight - 16;
+        const clampedTop = Math.max(minTop, Math.min(desiredTop, maxTop));
+
+        panel.style.left = `${clampedLeft}px`;
+        panel.style.right = 'auto';
+        panel.style.top = `${clampedTop}px`;
+    }
+    function ensurePanelRoom() {
+        if (!selectedLatLng || window.innerWidth <= 850) return;
+
+        const panel = document.getElementById('detailPanel');
+        const mapSize = map.getSize();
+        const point = map.latLngToContainerPoint(selectedLatLng);
+        const neededRight = panel.offsetWidth + 42;
+        const overflowRight = (point.x + neededRight) - mapSize.x;
+
+        if (overflowRight > 0) {
+            map.panBy([overflowRight + 16, 0], { animate: true, duration: 0.25 });
+        }
+    }
+    function getDetailHtml(c) {
+        if (mode === 'hem') {
+            return `
+                <div class="popup-card" style="max-width:none;">
+                    <div class="popup-title">${c.name}</div>
+                    <div class="popup-meta">${c.neighborhood || c.ward || c.district}</div>
+                    ${formatOptionalLine('📍', c.address)}
+                    ${formatOptionalLine('✨', c.vibe)}
+                    ${formatOptionalLine('🥤', c.signature_drink)}
+                    ${formatOptionalLine('🎯', c.best_for)}
+                    <p class="popup-note">${c.hem_note}</p>
+                    ${formatTags(c.tags)}
+                    <div style="margin-top:6px;">
+                        ${formatLink(c.social_url, 'Social')}
+                        ${formatLink(c.menu_url, 'Menu')}
+                        ${formatLink(c.google_maps_url, 'Map')}
+                    </div>
+                </div>
+            `;
+        }
+        return `
+            <div class="popup-card" style="max-width:none;">
+                <div class="popup-title">${c.name}</div>
+                <div class="popup-meta">${c.roaster_type || 'specialty cafe'}</div>
+                ${formatOptionalLine('⚙️', c.machine)}
+                ${formatOptionalLine('🫘', c.beans)}
+                ${formatOptionalLine('💧', c.tds)}
+                ${formatOptionalLine('☕', c.brew_methods ? c.brew_methods.join(', ') : '')}
+                ${formatOptionalLine('🌍', c.origin_focus)}
+                ${formatOptionalLine('🔥', c.roast_style)}
+                <p class="popup-note">${c.hat_note}</p>
+                ${formatTags(c.tags)}
+            </div>
+        `;
+    }
+    function showCafeDetails(cafe, latLng) {
+        selectedCafe = cafe;
+        selectedLatLng = latLng;
+        const panel = document.getElementById('detailPanel');
+        const content = document.getElementById('detailPanelContent');
+        panel.classList.add('visible');
+        content.innerHTML = getDetailHtml(cafe);
+        requestAnimationFrame(() => {
+            positionDetailPanel();
+            ensurePanelRoom();
+        });
+    }
+    function clearSelection() {
+        selectedCafe = null;
+        selectedLatLng = null;
+        const panel = document.getElementById('detailPanel');
+        panel.classList.remove('visible');
+        document.getElementById('detailPanelContent').innerHTML = '';
     }
     function renderMarkers() {
         markerCluster.clearLayers();
         cafeData.forEach(c => {
-            const m = L.marker([c.lat, c.lng]).bindPopup(getPopupHtml(c));
-            m.cafeDetails = c; markerCluster.addLayer(m);
+            const marker = L.marker([c.lat, c.lng]);
+            marker.cafeDetails = c;
+            marker.on('click', () => showCafeDetails(c, marker.getLatLng()));
+            markerCluster.addLayer(marker);
         });
         map.addLayer(markerCluster);
     }
@@ -89,13 +322,17 @@
         if (mode === m) return; mode = m;
         document.getElementById('h1').classList.toggle('active', m === 'hem');
         document.getElementById('h2').classList.toggle('active', m === 'hat');
-        markerCluster.eachLayer(layer => { layer.setPopupContent(getPopupHtml(layer.cafeDetails)); });
+        if (selectedCafe && selectedLatLng) showCafeDetails(selectedCafe, selectedLatLng);
     }
-    function flyTo(coords) { map.flyTo(coords, 14, { animate: true, duration: 1.8 }); }
+    function flyTo(coords, zoom = 14) { map.flyTo(coords, zoom, { animate: true, duration: 1.8 }); }
     window.onload = () => {
-        init(); const uid = localStorage.getItem('uid');
-        document.querySelector('.auth-box').innerHTML = uid ? `<button class="nav-btn" onclick="localStorage.clear(); location.reload();">Logout</button>` : `<button class="nav-btn" onclick="window.location.href='index.html'">Login</button>`;
+        init();
+        syncAuthUI();
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeMenu(); clearSelection(); } });
     };
+    window.addEventListener('resize', () => {
+        if (selectedCafe && selectedLatLng) positionDetailPanel();
+    });
 </script>
 </body>
 </html>
