@@ -184,12 +184,27 @@
         }
     });
 
-    function syncAuthUI() {
-        const email = localStorage.getItem('uemail');
-        document.querySelectorAll('.auth-box').forEach(b => {
-            b.innerHTML = email ? `<button class="nav-btn" onclick="logout()">Logout</button>` : `<button class="nav-btn" onclick="openLogin()">Login</button>`;
-        });
+    function submitAuth() {
+    const email = document.getElementById('u_email').value.trim();
+    if (email.includes('@')) {
+        localStorage.setItem('uid', 'user_' + Date.now());
+        localStorage.setItem('uemail', email);
+        closeModal();
+        syncAuthUI();
+    } else {
+        alert("Please enter a valid email address.");
     }
+}
+
+// Ensure the Enter key works in the login modal
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const modal = document.getElementById('loginModal');
+        if (modal && modal.style.display === 'block') {
+            submitAuth();
+        }
+    }
+});
 
     function logout() { localStorage.clear(); location.reload(); }
 
@@ -223,65 +238,73 @@
     }
 
     async function getAI() {
-        document.getElementById('quiz-flow').classList.remove('active');
-        document.getElementById('loading').classList.add('active');
-        await ensureData();
-        
-        // 1. Calculate LOCAL SCORES (Instantly reliable)
-        let finalScores = [4, 4, 4, 4, 4, 4]; // Base
-        answers.forEach((ans, i) => {
-            const traits = quizPaths[path][i].traits[ans];
-            if(traits.floral) finalScores[0] += traits.floral;
-            if(traits.fruity) finalScores[1] += traits.fruity;
-            if(traits.sour) finalScores[2] += traits.sour;
-            if(traits.sweet) finalScores[3] += traits.sweet;
-            if(traits.nutty) finalScores[4] += traits.nutty;
-            if(traits.roasted) finalScores[5] += traits.roasted;
-        });
-        finalScores = finalScores.map(s => Math.min(10, s));
+    document.getElementById('quiz-flow').classList.remove('active');
+    document.getElementById('loading').classList.add('active');
+    await ensureData();
+    
+    // A: Local Math Decoder (Your "Technical Moat")
+    let finalScores = [4, 4, 4, 4, 4, 4]; 
+    answers.forEach((ans, i) => {
+        const traits = quizPaths[path][i].traits[ans];
+        if(traits.floral) finalScores[0] += traits.floral;
+        if(traits.fruity) finalScores[1] += traits.fruity;
+        if(traits.sour) finalScores[2] += traits.sour;
+        if(traits.sweet) finalScores[3] += traits.sweet;
+        if(traits.nutty) finalScores[4] += traits.nutty;
+        if(traits.roasted) finalScores[5] += traits.roasted;
+    });
+    finalScores = finalScores.map(s => Math.min(10, s));
+    const labels = ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"];
+    const topTrait = labels[finalScores.indexOf(Math.max(...finalScores))];
 
-        // 2. Setup Results Object with Fallback Story
-        let resData = {
-            story: `As a ${path} explorer, your palate leans towards high clarity and integrated sweetness. You appreciate cafes that balance meticulous technique with a distinct sense of place.`,
-            scores: finalScores,
-            cafe: cafes[0].name,
-            drink: cafes[0].signature_drink
+    // B: Local Story Fallback
+    let resData = {
+        story: `As a ${path} explorer, your palate leans towards ${topTrait} profiles. You appreciate the craftsmanship of Saigon's specialty roasters who balance modern technique with local character.`,
+        scores: finalScores,
+        cafe: cafes[0].name,
+        drink: cafes[0].signature_drink
+    };
+
+    // C: AI Attempt (Using v1beta for better compatibility)
+    try {
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        
+        const prompt = {
+            contents: [{
+                parts: [{
+                    text: `Return ONLY JSON: {"story": "90 words about user's ${path} coffee palate", "scores": [6 ints], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}`
+                }]
+            }]
         };
 
-        // 3. Attempt Gemini AI Enrichment
-        try {
-            // Updated to v1 stable endpoint
-            const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            const prompt = `Return JSON ONLY: {"story": "90 word narrative about user's ${path} palate", "scores": [6 ints], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. Answers: ${answers.join(',')}`;
-            
-            const resp = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
+        const resp = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(prompt)
+        });
 
-            if (resp.ok) {
-                const data = await resp.json();
-                const cleanText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
-                const parsed = JSON.parse(cleanText);
-                resData.story = parsed.story || resData.story;
-                resData.scores = parsed.scores || resData.scores;
-            } else {
-                console.error("API Error Status:", resp.status);
-            }
-        } catch (e) {
-            console.warn("AI 404/Error: Bypassing to local decoder.");
+        if (resp.ok) {
+            const data = await resp.json();
+            const cleanText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+            const parsed = JSON.parse(cleanText);
+            resData.story = parsed.story || resData.story;
+            // Note: We use the AI story but keep our Local Scores for 100% accuracy to the quiz
+        } else {
+            console.warn("Gemini API returned " + resp.status + ". Switching to local narrative engine.");
         }
-
-        // 4. Final Save & Render
-        localStorage.setItem('has_profile', 'true');
-        localStorage.setItem('p_story', resData.story);
-        localStorage.setItem('p_scores', JSON.stringify(resData.scores));
-        localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
-        localStorage.setItem('matched_cafe', resData.cafe);
-
-        showResult(resData.story, resData.scores, resData.cafe, resData.drink);
+    } catch (e) {
+        console.error("Connection error. Using offline decoder.");
     }
+
+    // D: Final Save & Render
+    localStorage.setItem('has_profile', 'true');
+    localStorage.setItem('p_story', resData.story);
+    localStorage.setItem('p_scores', JSON.stringify(resData.scores));
+    localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
+    localStorage.setItem('matched_cafe', resData.cafe);
+
+    showResult(resData.story, resData.scores, resData.cafe, resData.drink);
+}
 
     function showResult(story, scores, name, drink) {
         document.getElementById('loading').classList.remove('active');
