@@ -127,7 +127,7 @@
 </div>
 
 <script>
-    // --- DATA & CONFIG ---
+    // --- 1. DATA & CONFIG ---
     const GEMINI_API_KEY = 'AIzaSyC_cDMstZ1MtHfMJ-1JlCXIXgVPY3REDLw';
     const GEMINI_MODEL = 'gemini-1.5-flash';
     const quizPaths = {
@@ -159,15 +159,22 @@
 
     let path = '', step = 0, answers = [], chartInstance = null, cafes = [];
 
-    // --- AUTH LOGIC (FIXED) ---
+    // --- 2. AUTH & UI LOGIC (Fixes the ReferenceError) ---
     function openLogin() { document.getElementById('loginModal').style.display = 'block'; }
     function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
     
+    function syncAuthUI() {
+        const email = localStorage.getItem('uemail');
+        document.querySelectorAll('.auth-box').forEach(b => {
+            b.innerHTML = email ? 
+                `<button class="nav-btn" onclick="logout()">Logout</button>` : 
+                `<button class="nav-btn" onclick="openLogin()">Login</button>`;
+        });
+    }
+
     function submitAuth() {
         const email = document.getElementById('u_email').value.trim();
-        const pass = document.getElementById('u_pass').value.trim();
-        
-        if (email.includes('@') && email.length > 5) {
+        if (email.includes('@')) {
             localStorage.setItem('uid', 'user_' + Date.now());
             localStorage.setItem('uemail', email);
             closeModal();
@@ -177,39 +184,14 @@
         }
     }
 
-    // Add "Enter" key support for login
-    document.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter' && document.getElementById('loginModal').style.display === 'block') {
-            submitAuth();
-        }
-    });
-
-    function submitAuth() {
-    const email = document.getElementById('u_email').value.trim();
-    if (email.includes('@')) {
-        localStorage.setItem('uid', 'user_' + Date.now());
-        localStorage.setItem('uemail', email);
-        closeModal();
-        syncAuthUI();
-    } else {
-        alert("Please enter a valid email address.");
-    }
-}
-
-// Ensure the Enter key works in the login modal
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        const modal = document.getElementById('loginModal');
-        if (modal && modal.style.display === 'block') {
-            submitAuth();
-        }
-    }
-});
-
     function logout() { localStorage.clear(); location.reload(); }
 
-    // --- QUIZ NAVIGATION ---
-    function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('active'); document.getElementById('menuOverlay').classList.toggle('active'); }
+    function toggleMenu() { 
+        document.getElementById('mobileMenu').classList.toggle('active'); 
+        document.getElementById('menuOverlay').classList.toggle('active'); 
+    }
+
+    // --- 3. QUIZ NAVIGATION ---
     function startPath(p) { path = p; step = 0; answers = []; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
     
     function renderQuestion() {
@@ -222,9 +204,8 @@ document.addEventListener('keydown', function(e) {
     }
 
     function selectOption(o) { answers.push(o); step++; if(step<6) renderQuestion(); else getAI(); }
-    function goBack() { if(step > 0) { step--; answers.pop(); renderQuestion(); } }
 
-    // --- ENGINE ---
+    // --- 4. ENGINE & API (Fail-Safe) ---
     async function ensureData() { 
         if(cafes.length > 0) return;
         try {
@@ -233,83 +214,66 @@ document.addEventListener('keydown', function(e) {
             cafes = await r.json();
         } catch (e) {
             console.warn("JSON error. Using fallback.");
-            cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over", beans: "Vietnam Fine Robusta", vibe: "Garden"}];
+            cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over", beans: "Vietnam Specialty", vibe: "Garden"}];
         }
     }
 
     async function getAI() {
-    document.getElementById('quiz-flow').classList.remove('active');
-    document.getElementById('loading').classList.add('active');
-    await ensureData();
-    
-    // A: Local Math Decoder (Your "Technical Moat")
-    let finalScores = [4, 4, 4, 4, 4, 4]; 
-    answers.forEach((ans, i) => {
-        const traits = quizPaths[path][i].traits[ans];
-        if(traits.floral) finalScores[0] += traits.floral;
-        if(traits.fruity) finalScores[1] += traits.fruity;
-        if(traits.sour) finalScores[2] += traits.sour;
-        if(traits.sweet) finalScores[3] += traits.sweet;
-        if(traits.nutty) finalScores[4] += traits.nutty;
-        if(traits.roasted) finalScores[5] += traits.roasted;
-    });
-    finalScores = finalScores.map(s => Math.min(10, s));
-    const labels = ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"];
-    const topTrait = labels[finalScores.indexOf(Math.max(...finalScores))];
-
-    // B: Local Story Fallback
-    let resData = {
-        story: `As a ${path} explorer, your palate leans towards ${topTrait} profiles. You appreciate the craftsmanship of Saigon's specialty roasters who balance modern technique with local character.`,
-        scores: finalScores,
-        cafe: cafes[0].name,
-        drink: cafes[0].signature_drink
-    };
-
-    // C: AI Attempt (Using v1beta for better compatibility)
-    try {
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        document.getElementById('quiz-flow').classList.remove('active');
+        document.getElementById('loading').classList.add('active');
+        await ensureData();
         
-        const prompt = {
-            contents: [{
-                parts: [{
-                    text: `Return ONLY JSON: {"story": "90 words about user's ${path} coffee palate", "scores": [6 ints], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}`
-                }]
-            }]
+        // Local Math Scorer (Always works even if API 404s)
+        let finalScores = [4, 4, 4, 4, 4, 4];
+        answers.forEach((ans, i) => {
+            const traits = quizPaths[path][i].traits[ans];
+            if(traits.floral) finalScores[0] += traits.floral;
+            if(traits.fruity) finalScores[1] += traits.fruity;
+            if(traits.sour) finalScores[2] += traits.sour;
+            if(traits.sweet) finalScores[3] += traits.sweet;
+            if(traits.nutty) finalScores[4] += traits.nutty;
+            if(traits.roasted) finalScores[5] += traits.roasted;
+        });
+        finalScores = finalScores.map(s => Math.min(10, s));
+
+        let resData = {
+            story: `As a ${path} explorer, your palate is refined. You seek complexity and clean extraction, making you a perfect match for Saigon's modern specialty scene.`,
+            scores: finalScores,
+            cafe: cafes[0].name,
+            drink: cafes[0].signature_drink
         };
 
-        const resp = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(prompt)
-        });
+        try {
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            const prompt = `Return ONLY JSON: {"story": "90 words", "scores": [6 ints], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User chose path ${path} and answers: ${answers.join(',')}`;
+            
+            const resp = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
 
-        if (resp.ok) {
-            const data = await resp.json();
-            const cleanText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
-            const parsed = JSON.parse(cleanText);
-            resData.story = parsed.story || resData.story;
-            // Note: We use the AI story but keep our Local Scores for 100% accuracy to the quiz
-        } else {
-            console.warn("Gemini API returned " + resp.status + ". Switching to local narrative engine.");
-        }
-    } catch (e) {
-        console.error("Connection error. Using offline decoder.");
+            if (resp.ok) {
+                const data = await resp.json();
+                const cleanText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+                const parsed = JSON.parse(cleanText);
+                resData.story = parsed.story || resData.story;
+            }
+        } catch (e) { console.warn("Using Local Engine."); }
+
+        localStorage.setItem('has_profile', 'true');
+        localStorage.setItem('p_story', resData.story);
+        localStorage.setItem('p_scores', JSON.stringify(resData.scores));
+        localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
+        localStorage.setItem('matched_cafe', resData.cafe);
+
+        showResult(resData.story, resData.scores, resData.cafe, resData.drink);
     }
-
-    // D: Final Save & Render
-    localStorage.setItem('has_profile', 'true');
-    localStorage.setItem('p_story', resData.story);
-    localStorage.setItem('p_scores', JSON.stringify(resData.scores));
-    localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
-    localStorage.setItem('matched_cafe', resData.cafe);
-
-    showResult(resData.story, resData.scores, resData.cafe, resData.drink);
-}
 
     function showResult(story, scores, name, drink) {
         document.getElementById('loading').classList.remove('active');
         document.getElementById('result').classList.add('active');
-        document.getElementById('result-text').innerHTML = `${story}<br><br><b>Recommended Match:</b> ${name}<br><small>${drink}</small>`;
+        document.getElementById('result-text').innerHTML = `${story}<div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;"><b>Match: ${name}</b><br><small>${drink}</small></div>`;
         
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(document.getElementById('palateChart'), {
@@ -320,7 +284,22 @@ document.addEventListener('keydown', function(e) {
     }
 
     function resetQuiz() { location.reload(); }
-    window.onload = () => { syncAuthUI(); ensureData(); };
+
+    // --- 5. STARTUP & LISTENERS ---
+    window.onload = () => {
+        syncAuthUI(); // This is now defined!
+        ensureData();
+    };
+
+    // Fix for Login with Enter key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const modal = document.getElementById('loginModal');
+            if (modal && modal.style.display === 'block') {
+                submitAuth();
+            }
+        }
+    });
 </script>
 </body>
 </html>
