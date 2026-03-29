@@ -12,7 +12,7 @@
         * { box-sizing: border-box; font-family: 'Be Vietnam Pro', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--cream); margin: 0; color: var(--coffee); overflow-x: hidden; }
 
-        /* Header Navigation */
+        /* Unified Header */
         header { 
             background: rgba(61, 43, 31, 0.98); backdrop-filter: blur(10px); color: white; 
             padding: 0 5%; display: flex; justify-content: space-between; align-items: center; 
@@ -36,21 +36,23 @@
         .option-btn { display: block; width: 100%; padding: 20px; margin: 12px 0; border: 2px solid #f3f3f3; border-radius: 16px; cursor: pointer; background: white; font-weight: 600; text-align: center; color: var(--coffee); transition: 0.2s; font-size: 1rem; }
         .option-btn:hover { border-color: var(--accent); transform: scale(1.02); }
         .secondary-btn { border: 1px solid #e6ddd2; background: #fffaf5; color: var(--coffee); padding: 12px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        
+        .secondary-btn:disabled { opacity: 0.4; }
+
+        .status-chip { padding: 6px 12px; border-radius: 999px; background: #f6efe8; color: #7a5a3d; font-size: 0.7rem; font-weight: 700; }
         #result-text { font-size: 0.95rem; line-height: 1.7; background: #fffcf5; padding: 25px; border-radius: 20px; border-left: 6px solid var(--accent); margin-bottom: 20px; }
         .loading-ring { width: 42px; height: 42px; margin: 0 auto 16px; border-radius: 50%; border: 4px solid #efe5d9; border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ABOUT SECTION STYLING */
+        /* Combined About Section */
         .about-section { width: 100%; max-width: 800px; padding: 60px 0; border-top: 1px solid #eee; }
-        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px; }
-        .about-card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
-        .about-card h3 { margin-top: 0; color: var(--accent); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
-        .about-card p { font-size: 0.9rem; line-height: 1.6; color: #666; }
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+        .about-card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #fcfcfc; }
+        .about-card h3 { margin-top: 0; color: var(--coffee); font-size: 1.1rem; font-weight: 800; }
+        .about-card p { font-size: 0.85rem; line-height: 1.6; color: #666; margin-bottom: 0; }
 
-        /* Modal */
+        /* Login Modal */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26, 18, 12, 0.85); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 12vh auto; padding: 40px; width: 90%; max-width: 400px; border-radius: 30px; }
+        .modal-content { background: white; margin: 15vh auto; padding: 40px; width: 90%; max-width: 400px; border-radius: 30px; }
         .ans-input { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #eee; font-size: 1rem; margin-bottom: 15px; outline: none; }
 
         footer { padding: 40px 5% 60px; text-align: center; font-size: 11px; color: #8a7b6f; line-height: 1.8; opacity: 0.7; }
@@ -75,29 +77,29 @@
 </header>
 
 <main>
-    <!-- Decoder Section -->
+    <!-- Decoder -->
     <div style="text-align:center; padding-bottom: 40px;">
-        <div class="eyebrow">Taste Decoder</div>
+        <div class="eyebrow">Project MVP</div>
         <h1 style="margin:0; font-size: 2.5rem; font-weight: 800;">Find Your Coffee DNA</h1>
-        <p style="color: #666; max-width: 400px; margin: 15px auto;">Use our AI-powered engine to match your palate with Saigon's hidden specialty gems.</p>
+        <p style="color: #666; max-width: 400px; margin: 15px auto;">Specialty discovery powered by deterministic AI matching.</p>
     </div>
 
     <div class="quiz-card">
         <div class="progress-bar" id="progress-bar"></div>
         
         <div id="step-0" class="step active">
-            <h3 style="text-align:center; margin-bottom:25px;">Choose your level</h3>
-            <button class="option-btn" onclick="startPath('A')">☕ Beginner</button>
-            <button class="option-btn" onclick="startPath('B')">⚖️ Intermediate</button>
-            <button class="option-btn" onclick="startPath('C')">🔬 Professional</button>
+            <h3 style="text-align:center; margin-bottom:25px;">How technical do you want to be?</h3>
+            <button class="option-btn" onclick="startPath('A')">☕ Beginner (Flavor-first)</button>
+            <button class="option-btn" onclick="startPath('B')">⚖️ Intermediate (Roast & Extraction)</button>
+            <button class="option-btn" onclick="startPath('C')">🔬 Professional (TDS & Chemistry)</button>
         </div>
 
         <div id="quiz-flow" class="step">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
                 <span class="status-chip" id="path-label">Path</span>
                 <span class="status-chip" id="step-label">1 of 6</span>
             </div>
-            <h3 id="question-text" style="text-align:center; margin-bottom: 25px;"></h3>
+            <h3 id="question-text" style="text-align:center; margin-bottom: 25px; line-height:1.3;"></h3>
             <div id="options-container"></div>
             <div style="margin-top:20px; text-align:center;">
                 <button id="back-btn" class="secondary-btn" onclick="goBack()" disabled>Back</button>
@@ -106,45 +108,49 @@
 
         <div id="loading" class="step" style="text-align:center; padding: 40px 0;">
             <div class="loading-ring"></div>
-            <p style="font-weight:600; color:var(--accent);">Brewing personalized results...</p>
+            <p style="font-weight:600; color:var(--accent);">AI decoding your profile...</p>
         </div>
 
         <div id="result" class="step">
-            <h2 style="text-align:center; margin-top:0;">Your Result</h2>
+            <h2 style="text-align:center; margin-top:0;">Your Profile</h2>
             <div id="result-text"></div>
-            <canvas id="palateChart" style="max-width: 100%; margin: 20px auto;"></canvas>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
-                <button class="secondary-btn" onclick="window.location.href='map.html'">Open Map</button>
-                <button class="secondary-btn" onclick="window.location.href='passport.html'">View Passport</button>
+            <canvas id="palateChart" style="max-width: 300px; margin: 0 auto;"></canvas>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:25px;">
+                <button class="secondary-btn" onclick="window.location.href='map.html'">Go to Map</button>
+                <button class="secondary-btn" onclick="window.location.href='passport.html'">Your Passport</button>
             </div>
             <button class="option-btn" style="background:var(--coffee); color:white; margin-top:15px;" onclick="location.reload()">Start Over</button>
         </div>
     </div>
 
-    <!-- About Section (Beneath Decoder) -->
+    <!-- About Section -->
     <section class="about-section">
         <div style="text-align: center; margin-bottom: 40px;">
-            <div class="eyebrow">Project Concept</div>
-            <h2 style="font-size: 2rem; font-weight: 800;">Bridging the Hạt & Hẻm</h2>
+            <div class="eyebrow">Concept Presentation</div>
+            <h2 style="font-size: 2rem; font-weight: 800;">Specialty Coffee for the People</h2>
+            <p style="color:666; max-width:600px; margin:15px auto;">Hạt & Hẻm addresses the gap between technical roasting science and local discovery.</p>
         </div>
 
         <div class="about-grid">
             <div class="about-card">
-                <h3>The "Hạt" (The Bean)</h3>
-                <p>Specialty coffee is often seen as technical and intimidating. We translate TDS, roast levels, and extraction methods into a visual DNA profile that anyone can understand.</p>
+                <h3>Authentic Problem</h3>
+                <p>Specialty coffee menus are intimidating (Hạt). Hidden gems are hard to find (Hẻm). We remove the "Bad Order" risk by matching palate to roast profile.</p>
             </div>
             <div class="about-card">
-                <h3>The "Hẻm" (The Alley)</h3>
-                <p>Saigon's best coffee is hidden in alleys. Our map doesn't just show locations; it captures the "Alley Soul" — the vibe, the energy, and the sense of place.</p>
+                <h3>The MVP Strategy</h3>
+                <p>A static, high-performance web app that uses Gemini AI as a <b>Logic Engine</b> rather than just a chatbot. It translates simple cravings into technical roasting metrics.</p>
             </div>
             <div class="about-card">
-                <h3>The Problem</h3>
-                <p>Discovery tools like Google Maps focus on ratings, but not <b>palate-match</b>. Consumers risk expensive orders they don't enjoy, while roasteries struggle to find their ideal audience.</p>
+                <h3>Visual Language</h3>
+                <p>Using <b>Chart.js</b> to visualize the "Coffee DNA" makes technical data accessible. The <b>Leaflet</b> map provides a curated, vibe-based journey through HCMC.</p>
             </div>
             <div class="about-card">
-                <h3>The Tech Stack</h3>
-                <p>Developed by <b>Nguyen Trong Tin</b> for RMIT Digital Media Studio 4. Built using HTML5, Leaflet.js, Chart.js, and Google Gemini AI for deterministic tasting logic.</p>
+                <h3>Technical Moat</h3>
+                <p>Deterministic local scoring ensures the app works even if the AI fails. The data-driven pairing logic is proprietary and district-specific.</p>
             </div>
+        </div>
+        <div style="text-align:center; margin-top:40px;">
+            <p style="font-size:0.8rem; color:#999;">Created by <b>Nguyen Trong Tin</b> for Digital Media Studio 4 (COMM2592)</p>
         </div>
     </section>
 </main>
@@ -153,20 +159,23 @@
     <p>© 2026 Nguyen Trong Tin @ RMIT University • Digital Media Studio 4 Build</p>
 </footer>
 
-<!-- Login Modal -->
+<!-- Modal -->
 <div id="loginModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0;">Explorer Login</h2>
-        <input type="email" id="u_email" class="ans-input" placeholder="Email Address">
+        <p style="font-size:0.85rem; color:#666; margin-bottom:20px;">Save your taste profile to your Passport.</p>
+        <input type="email" id="u_email" class="ans-input" placeholder="Your Email">
         <button class="nav-btn" style="width:100%; padding:18px;" onclick="submitAuth()">Continue</button>
         <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:#999; cursor:pointer;">Cancel</button>
     </div>
 </div>
 
 <script>
-    // --- CONFIG & DATA ---
+    // --- APP LOGIC ---
     const GEMINI_API_KEY = 'AIzaSyC_cDMstZ1MtHfMJ-1JlCXIXgVPY3REDLw';
-    const GEMINI_MODEL = 'gemini-1.5-flash';
+    // FIXED URL FOR STABLE V1 ENDPOINT
+    const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    
     const quizPaths = {
         A: [
             { q: "Morning craving?", a: "Sweet", b: "Savory", c: "Black coffee only", traits: { "Sweet": { floral: 1, fruity: 1, sweet: 2 }, "Savory": { nutty: 2, roasted: 1 }, "Black coffee only": { roasted: 2, nutty: 1, sour: 1 } } },
@@ -196,7 +205,6 @@
 
     let path = '', step = 0, answers = [], chartInstance = null, cafes = [];
 
-    // --- FUNCTIONS ---
     function syncAuthUI() {
         const email = localStorage.getItem('uemail');
         document.querySelectorAll('.auth-box').forEach(b => {
@@ -210,7 +218,6 @@
     }
 
     function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
-
     function startPath(p) { path = p; step = 0; answers = []; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
     
     function renderQuestion() {
@@ -228,10 +235,7 @@
 
     async function ensureData() { 
         if(cafes.length > 0) return;
-        try {
-            const r = await fetch('./cafes.json');
-            cafes = await r.json();
-        } catch (e) { cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over"}]; }
+        try { const r = await fetch('./cafes.json'); cafes = await r.json(); } catch (e) { cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over"}]; }
     }
 
     async function getAI() {
@@ -239,6 +243,7 @@
         document.getElementById('loading').classList.add('active');
         await ensureData();
         
+        // Local Scoring (Fallback logic)
         let finalScores = [4, 4, 4, 4, 4, 4];
         answers.forEach((ans, i) => {
             const traits = quizPaths[path][i].traits[ans];
@@ -252,17 +257,15 @@
         finalScores = finalScores.map(s => Math.min(10, s));
 
         let resData = {
-            story: `Your taste profile as a ${path} explorer shows a preference for character and clarity. You seek out roasters who respect the bean's origin.`,
+            story: `Your taste journey as a ${path} explorer reveals a deep appreciation for character and clarity. You prefer meticulously prepared cups that highlight origin.`,
             scores: finalScores,
             cafe: cafes[0].name,
             drink: cafes[0].signature_drink
         };
 
         try {
-            // Updated API structure to handle the 404 issue
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             const promptBody = {
-                contents: [{ parts: [{ text: `Return JSON only: {"story": "90 words about user's ${path} coffee palate", "scores": [6 integers 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}` }] }]
+                contents: [{ parts: [{ text: `Task: Coffee Decoder. Return JSON only: {"story": "90 words about user's ${path} palate", "scores": [6 integers 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}` }] }]
             };
             
             const resp = await fetch(API_URL, {
@@ -276,8 +279,9 @@
                 const cleanText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
                 const parsed = JSON.parse(cleanText);
                 resData.story = parsed.story || resData.story;
+                resData.scores = parsed.scores || resData.scores;
             }
-        } catch (e) { console.warn("AI 404/Error: Bypassing to local decoder."); }
+        } catch (e) { console.warn("AI 404/Error: Bypassing to local decoder engine."); }
 
         localStorage.setItem('has_profile', 'true');
         localStorage.setItem('p_story', resData.story);
@@ -291,7 +295,7 @@
     function showResult(story, scores, name, drink) {
         document.getElementById('loading').classList.remove('active');
         document.getElementById('result').classList.add('active');
-        document.getElementById('result-text').innerHTML = `${story}<div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;"><b>Recommended: ${name}</b><br><small>${drink}</small></div>`;
+        document.getElementById('result-text').innerHTML = `${story}<div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;"><b>Recommended Match: ${name}</b><br><small>${drink}</small></div>`;
         
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(document.getElementById('palateChart'), {
@@ -303,7 +307,6 @@
 
     window.onload = () => { syncAuthUI(); ensureData(); };
 
-    // Support Enter Key for login
     document.addEventListener('keydown', (e) => {
         if(e.key === 'Enter' && document.getElementById('loginModal').style.display === 'block') submitAuth();
     });
