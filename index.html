@@ -57,7 +57,7 @@
 
         /* Modal */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26, 18, 12, 0.85); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 15vh auto; padding: 40px; width: 90%; max-width: 400px; border-radius: 30px; }
+        .modal-content { background: white; margin: 12vh auto; padding: 40px; width: 90%; max-width: 400px; border-radius: 30px; }
         .ans-input { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #eee; font-size: 1rem; margin-bottom: 15px; outline: none; }
 
         footer { padding: 40px 5% 60px; text-align: center; font-size: 11px; color: #8a7b6f; line-height: 1.8; opacity: 0.7; }
@@ -131,15 +131,15 @@
     <!-- About / Concept Section -->
     <section class="about-section">
         <div style="text-align: center; margin-bottom: 40px;">
-            <div class="eyebrow">Project Concept</div>
+            <div class="eyebrow">Concept Presentation</div>
             <h2 style="font-size: 2rem; font-weight: 800;">Specialty Coffee for the People</h2>
-            <p style="color:666; max-width:600px; margin:15px auto;">We bridge the gap between technical roasting science and local hidden discovery.</p>
+            <p style="color:666; max-width:600px; margin:15px auto;">Hạt & Hẻm addresses the gap between technical roasting science and local hidden discovery.</p>
         </div>
 
         <div class="about-grid">
             <div class="about-card">
                 <h3>Authentic Problem</h3>
-                <p>Specialty coffee is technical and intimidating (Hạt). Hidden roasteries are hard to find (Hẻm). We remove the "Bad Order" risk by matching DNA to roast profiles.</p>
+                <p>Specialty coffee menus are technical and intimidating (Hạt). Hidden roasteries are hard to find (Hẻm). We remove the "Bad Order" risk by matching DNA to roast profiles.</p>
             </div>
             <div class="about-card">
                 <h3>The MVP Strategy</h3>
@@ -151,7 +151,7 @@
             </div>
             <div class="about-card">
                 <h3>Technical Moat</h3>
-                <p>Deterministic local scoring ensures the app works even if the API fails. The data-driven pairing logic is proprietary and district-specific.</p>
+                <p>Deterministic local scoring ensures the app works even if the AI fails. The data-driven pairing logic is proprietary and district-specific.</p>
             </div>
         </div>
     </section>
@@ -261,7 +261,7 @@
         finalScores = finalScores.map(s => Math.min(10, s));
 
         let resData = {
-            story: `Your taste profile as a ${path} explorer reveals a preference for character and clarity. You value craftsmanship and roasters who respect the bean's origin.`,
+            story: `Your taste profile as a ${path === 'A' ? 'Beginner' : path === 'B' ? 'Intermediate' : 'Professional'} explorer reveals a preference for character and clarity. You value craftsmanship and roasters who respect the bean's origin.`,
             scores: finalScores,
             cafe: cafes[0].name,
             drink: cafes[0].signature_drink
@@ -269,7 +269,7 @@
 
         try {
             const promptBody = {
-                contents: [{ parts: [{ text: `Task: Coffee Personality Decoder. Return JSON only: {"story": "90 words about user's ${path} coffee palate", "scores": [6 integers 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}` }] }]
+                contents: [{ parts: [{ text: `Task: Coffee Personality Decoder. Return JSON only: {"story": "A 90-word narrative about the user's ${path} coffee palate based on their preferences", "scores": [6 integers 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}` }] }]
             };
             
             const resp = await fetch(API_URL, {
