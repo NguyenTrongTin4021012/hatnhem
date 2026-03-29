@@ -189,105 +189,88 @@
     function selectOption(o) { answers.push(o); step++; if(step<6) renderQuestion(); else getAI(); }
 
     async function ensureData() { 
-        if(cafes.length) return;
+        if(cafes.length > 0) return;
         try {
             const r = await fetch('./cafes.json');
-            if(!r.ok) throw new Error("File not found");
+            if(!r.ok) throw new Error("JSON not found");
             cafes = await r.json();
         } catch (e) {
-            console.error("Data Load Error:", e);
-            cafes = [{name: "Every Half", signature_drink: "Pour Over", vibe: "Garden", district: "District 3, HCM"}]; // Fallback
+            console.warn("JSON error, using internal backup.");
+            cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over", beans: "Vietnam Fine Robusta", vibe: "Garden"}];
         }
     }
 
     async function getAI() {
-    // 1. UI Transition
-    document.getElementById('quiz-flow').classList.remove('active');
-    document.getElementById('loading').classList.add('active');
-
-    // 2. Ensure Cafe Data is loaded
-    await ensureData();
-    
-    // Default Fallback Data (In case API or JSON fails)
-    let resData = {
-        story: "You have a balanced and curious palate, seeking the hidden gems of Saigon's coffee culture.",
-        scores: [5, 6, 5, 7, 5, 4],
-        cafe: cafes.length > 0 ? cafes[0].name : "Every Half Coffee",
-        drink: cafes.length > 0 ? cafes[0].signature_drink : "Specialty Pour Over"
-    };
-
-    try {
-        // Use v1 instead of v1beta for better stability
-        const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        document.getElementById('quiz-flow').classList.remove('active');
+        document.getElementById('loading').classList.add('active');
+        await ensureData();
         
-        const prompt = `Task: Coffee Personality Decoder. 
-        User Path: ${path}. User Answers: ${answers.join(', ')}. 
-        Reference Cafes: ${JSON.stringify(cafes.slice(0, 3))}.
-        Return ONLY a JSON object: {"story": "90 word narrative", "scores": [6 ints 1-10], "cafe": "Name", "drink": "Drink"}. 
-        Order of scores: Floral, Fruity, Sour, Sweet, Nutty, Roasted.`;
-
-        const resp = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        // 1. Calculate Local Baseline Scores (Always works)
+        let finalScores = [5, 5, 5, 5, 5, 5];
+        answers.forEach((ans, i) => {
+            const traitData = quizPaths[path][i].traits[ans];
+            if(traitData.floral) finalScores[0] += traitData.floral;
+            if(traitData.fruity) finalScores[1] += traitData.fruity;
+            if(traitData.sour) finalScores[2] += traitData.sour;
+            if(traitData.sweet) finalScores[3] += traitData.sweet;
+            if(traitData.nutty) finalScores[4] += traitData.nutty;
+            if(traitData.roasted) finalScores[5] += traitData.roasted;
         });
+        finalScores = finalScores.map(s => Math.min(10, s));
 
-        if (!resp.ok) {
-            throw new Error(`API Hub Error: ${resp.status}`);
-        }
+        // 2. Default Local Match (Always works)
+        let resData = {
+            story: `Your taste journey as a ${path} explorer reveals a preference for clarity and depth. You lean towards balanced cups that celebrate origin character over heavy processing.`,
+            scores: finalScores,
+            cafe: cafes[0].name,
+            drink: cafes[0].signature_drink
+        };
 
-        const data = await resp.json();
-
-        // Safety check: Does the API response actually have content?
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-            const rawText = data.candidates[0].content.parts[0].text;
-            const cleanText = rawText.replace(/```json|```/g, '').trim();
-            const parsed = JSON.parse(cleanText);
+        // 3. Try Gemini AI (May fail, but we don't care anymore!)
+        try {
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            const prompt = `Coffee decoder JSON only: {"story": "90 words about ${path} palate", "scores": [6 ints], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. Answers: ${answers.join(',')}`;
             
-            // Update fallback with real AI data
-            resData = {
-                story: parsed.story || resData.story,
-                scores: Array.isArray(parsed.scores) ? parsed.scores : resData.scores,
-                cafe: parsed.cafe || resData.cafe,
-                drink: parsed.drink || resData.drink
-            };
-        }
-    } catch (e) {
-        console.warn("AI logic bypassed. Using local decoder logic.", e);
-        // This is where the app stays alive even if Gemini is down
+            const resp = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+
+            if (resp.ok) {
+                const data = await resp.json();
+                const cleanText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+                const parsed = JSON.parse(cleanText);
+                resData.story = parsed.story || resData.story;
+                resData.scores = parsed.scores || resData.scores;
+            }
+        } catch (e) { console.warn("Using Local Decoder Logic."); }
+
+        // 4. Final Save & Display
+        localStorage.setItem('has_profile', 'true');
+        localStorage.setItem('p_story', resData.story);
+        localStorage.setItem('p_scores', JSON.stringify(resData.scores));
+        localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
+        localStorage.setItem('matched_cafe', resData.cafe);
+
+        showResult(resData.story, resData.scores, resData.cafe, resData.drink);
     }
 
-    // 3. Save to LocalStorage for Passport
-    localStorage.setItem('has_profile', 'true');
-    localStorage.setItem('p_story', resData.story);
-    localStorage.setItem('p_scores', JSON.stringify(resData.scores));
-    localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
-    localStorage.setItem('matched_cafe', resData.cafe);
-
-    // 4. Render Results
-    showResult(resData.story, resData.scores, resData.cafe, resData.drink);
-}
-
-// Hardened Data Fetcher
-async function ensureData() { 
-    if(cafes.length > 0) return;
-    try {
-        const r = await fetch('./cafes.json');
-        if(!r.ok) throw new Error("JSON 404");
-        cafes = await r.json();
-    } catch (e) {
-        console.error("Critical: cafes.json failed to load. Using internal fallback.");
-        cafes = [{
-            "name": "Bosgaurus Coffee",
-            "district": "Binh Thanh, HCM",
-            "vibe": "Industrial Waterfront",
-            "signature_drink": "Big Bang Espresso"
-        }];
+    function showResult(story, scores, name, drink) {
+        document.getElementById('loading').classList.remove('active');
+        document.getElementById('result').classList.add('active');
+        document.getElementById('result-text').innerHTML = `${story}<br><br><b>Match: ${name}</b><br><small>${drink}</small>`;
+        
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(document.getElementById('palateChart'), {
+            type: 'radar',
+            data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 2 }] },
+            options: { scales: { r: { suggestedMax: 10, ticks: { display: false }, grid: { color: '#eee' } } }, plugins: { legend: { display: false } } }
+        });
     }
-}
 
     function resetQuiz() { location.reload(); }
-    window.onload = syncAuthUI;
+    window.onload = () => { syncAuthUI(); ensureData(); };
 </script>
 </body>
 </html>
