@@ -1,7 +1,8 @@
 <!-- 
     PROJECT: Hạt & Hẻm (Bean & Alley)
     AUTHOR: Nguyen Trong Tin at RMIT University
-    VERSION: 2026 "Side-Anchor" Precision Build
+    VERSION: 2026 "Discovery Panel" Build
+    TECH STACK: Leaflet.js, CSS Grid/Flex, Custom SVG Icons.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -13,8 +14,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --coffee: #3d2b1f; --cream: #fdfaf7; --accent: #d4a373; --white: #ffffff; --soft-shadow: 0 10px 40px rgba(61, 43, 31, 0.08); }
+        :root { --coffee: #3d2b1f; --cream: #fdfaf7; --accent: #d4a373; --white: #ffffff; --soft-shadow: 0 10px 40px rgba(61, 43, 31, 0.12); }
         * { box-sizing: border-box; font-family: 'Be Vietnam Pro', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
         body { margin: 0; display: flex; flex-direction: column; height: 100vh; background: var(--cream); overflow: hidden; color: var(--coffee); }
 
         /* --- UNIFIED HEADER --- */
@@ -25,73 +27,84 @@
         }
         .logo { font-size: 1.2rem; font-weight: 800; text-decoration: none; color: white; letter-spacing: -0.5px; }
         nav.desktop-nav { display: flex; align-items: center; gap: 25px; }
-        nav.desktop-nav a { color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: 0.3s; opacity: 0.8; }
-        nav.desktop-nav a.current { opacity: 1; position: relative; }
-        nav.desktop-nav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: var(--accent); border-radius: 999px; }
+        nav.desktop-nav a { color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8; transition: 0.3s; }
+        nav.desktop-nav a:hover { opacity: 1; }
         .nav-btn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
 
-        /* --- RESTYLED MAP --- */
-        #map { flex: 1; width: 100%; z-index: 1; background: #e5e3df; }
-        /* Coffee/Cream Map Filter */
-        .leaflet-layer { filter: sepia(0.5) hue-rotate(-15deg) contrast(0.9) brightness(1.05); }
+        /* --- MAIN LAYOUT --- */
+        .main-container { display: flex; flex: 1; position: relative; overflow: hidden; }
 
-        .controls { 
-            position: absolute; top: 90px; left: 50%; transform: translateX(-50%); 
-            z-index: 1000; background: white; padding: 6px; border-radius: 50px; 
+        /* --- LEFT DISCOVERY PANEL --- */
+        #discovery-panel {
+            width: 400px;
+            background: var(--white);
+            z-index: 1001;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            border-right: 1px solid #f2ece6;
+        }
+
+        .panel-content { padding: 32px; }
+        
+        /* Empty State */
+        .empty-state { text-align: center; margin-top: 100px; color: #bca08d; }
+        .empty-state svg { width: 60px; opacity: 0.2; margin-bottom: 20px; }
+
+        /* Active Cafe Styling */
+        .kicker { font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+        .cafe-title { font-size: 2rem; font-weight: 800; line-height: 1.1; margin-bottom: 8px; color: var(--coffee); }
+        .cafe-address { font-size: 0.9rem; color: #8a7b6f; margin-bottom: 24px; font-weight: 500; }
+        
+        .section-box { border-top: 1px solid #f2ece6; padding: 20px 0; animation: fadeIn 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .section-label { font-size: 0.7rem; font-weight: 800; color: #bca08d; text-transform: uppercase; margin-bottom: 8px; }
+        .section-data { font-size: 0.95rem; line-height: 1.6; color: var(--coffee); }
+        .note-text { font-style: italic; color: #5a4a3f; border-left: 3px solid var(--accent); padding-left: 15px; margin: 15px 0; }
+
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .tag { background: var(--cream); color: #7a5a3d; padding: 6px 14px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; border: 1px solid #eee7df; }
+
+        .action-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 30px; }
+        .link-btn { 
+            text-align: center; text-decoration: none; background: var(--coffee); 
+            color: white; padding: 14px; border-radius: 12px; font-size: 0.75rem; 
+            font-weight: 800; transition: 0.3s; 
+        }
+        .link-btn.secondary { background: var(--cream); color: var(--coffee); border: 1px solid #e6ddd2; }
+        .link-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        /* --- MAP AREA --- */
+        #map { flex: 1; z-index: 1; background: #e5e3df; }
+        .leaflet-layer { filter: sepia(0.3) hue-rotate(-10deg) contrast(0.95) brightness(1.02); }
+
+        /* Floating Mode Switcher */
+        .map-controls { 
+            position: absolute; top: 25px; left: 50%; transform: translateX(-50%); 
+            z-index: 1002; background: white; padding: 6px; border-radius: 50px; 
             display: flex; box-shadow: 0 10px 30px rgba(61, 43, 31, 0.15); 
         }
         .mode-btn { 
-            border: none; padding: 10px 22px; border-radius: 30px; cursor: pointer; 
+            border: none; padding: 12px 24px; border-radius: 30px; cursor: pointer; 
             font-weight: 800; font-size: 0.7rem; color: #999; transition: 0.3s; background: transparent; text-transform: uppercase;
         }
         .mode-btn.active { background: var(--coffee); color: white; }
 
-        /* --- THE PIN --- */
-        .custom-pin { display: flex; justify-content: center; align-items: center; }
+        /* --- FOOTER --- */
+        footer { background: var(--white); padding: 12px 5%; font-size: 10px; color: #8a7b6f; text-align: center; border-top: 1px solid #eee; z-index: 10006; }
 
-        /* --- THE POPUP (RIGHT SIDE FIXED) --- */
-        .leaflet-popup-side {
-            /* Force Popup to the Right */
-            margin-left: 20px !important;
-            margin-bottom: 35px !important; /* Centers it vertically with the pin */
-        }
-        .leaflet-popup-side .leaflet-popup-content-wrapper { 
-            border-radius: 20px; padding: 0; 
-            box-shadow: 0 15px 45px rgba(61, 43, 31, 0.2) !important;
-            border: 1px solid rgba(212, 163, 115, 0.2);
-            width: 310px;
-        }
-        .leaflet-popup-side .leaflet-popup-content { margin: 0 !important; width: 310px !important; }
-        .leaflet-popup-side .leaflet-popup-tip-container { display: none; } /* Remove arrow */
-
-        .pop-container { max-height: 400px; overflow-y: auto; padding: 24px; color: var(--coffee); }
-        .pop-kicker { font-size: 9px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
-        .pop-title { font-size: 1.4rem; font-weight: 800; line-height: 1.1; margin-bottom: 6px; }
-        .pop-subtitle { font-size: 0.75rem; color: #8a7b6f; margin-bottom: 15px; font-weight: 600; }
-        
-        .pop-section { border-top: 1px solid #f2ece6; padding-top: 12px; margin-top: 12px; }
-        .pop-label { font-size: 0.65rem; font-weight: 800; color: #bca08d; text-transform: uppercase; margin-bottom: 4px; }
-        .pop-data { font-size: 0.85rem; line-height: 1.5; margin-bottom: 8px; }
-
-        .pop-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
-        .pop-link-btn { 
-            text-align: center; text-decoration: none; background: #fffcf9; 
-            border: 1px solid #e6ddd2; color: var(--coffee); padding: 10px; 
-            border-radius: 12px; font-size: 0.7rem; font-weight: 800; transition: 0.2s;
-        }
-        .pop-link-btn:hover { border-color: var(--accent); background: var(--cream); }
-
-        .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-        .tag-chip { background: #f6efe8; color: #7a5a3d; padding: 4px 10px; border-radius: 999px; font-size: 0.6rem; font-weight: 700; }
-
-        footer { flex-shrink: 0; background: var(--white); padding: 12px; font-size: 10px; color: #8a7b6f; text-align: center; border-top: 1px solid #eee; }
-
-        @media (max-width: 850px) {
+        /* --- RESPONSIVE --- */
+        @media (max-width: 900px) {
             nav.desktop-nav { display: none; }
-            /* Return to top for mobile to avoid horizontal scrolling */
-            .leaflet-popup-side { margin-left: 0 !important; margin-bottom: 15px !important; }
-            .leaflet-popup-side .leaflet-popup-content-wrapper { width: 270px; }
-            .leaflet-popup-side .leaflet-popup-content { width: 270px !important; }
+            #discovery-panel {
+                position: absolute; bottom: 0; left: 0; width: 100%; height: 45vh;
+                border-right: none; border-top: 1px solid #f2ece6; transform: translateY(100%);
+            }
+            #discovery-panel.active { transform: translateY(0); }
+            .map-controls { top: 15px; width: 90%; justify-content: center; }
         }
     </style>
 </head>
@@ -107,38 +120,42 @@
     </nav>
 </header>
 
-<div class="controls">
-    <button id="h1" class="mode-btn active" onclick="setMode('hem')">Hẻm Mode</button>
-    <button id="h2" class="mode-btn" onclick="setMode('hat')">Hạt Mode</button>
-</div>
+<div class="main-container">
+    <!-- Left Discovery Panel -->
+    <aside id="discovery-panel">
+        <div id="panel-inner" class="panel-content">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <p style="font-weight: 600;">Select a location on the map<br>to explore the Hạt & Hẻm.</p>
+            </div>
+        </div>
+    </aside>
 
-<div id="map"></div>
+    <!-- Map Switcher -->
+    <div class="map-controls">
+        <button id="h1" class="mode-btn active" onclick="setMode('hem')">Hẻm (Alley Vibe)</button>
+        <button id="h2" class="mode-btn" onclick="setMode('hat')">Hạt (Bean Tech)</button>
+    </div>
+
+    <!-- Map Canvas -->
+    <div id="map"></div>
+</div>
 
 <footer>© 2026 Nguyen Trong Tin @ RMIT University • Digital Media Studio 4 Build</footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    let map, mode = 'hem', cafes = [], markers = [];
+    let map, mode = 'hem', cafes = [], markers = [], selectedCafe = null;
 
-    // --- 1. PIN STYLE ---
     const customIcon = L.divIcon({
         className: 'custom-pin',
-        html: `<svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 0C7.163 0 0 7.163 0 16C0 24.837 16 42 16 42C16 42 32 24.837 32 16C32 7.163 24.837 0 16 0Z" fill="#3d2b1f"/>
-                <circle cx="16" cy="16" r="6" fill="#d4a373"/>
-               </svg>`,
+        html: `<svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 0C7.163 0 0 7.163 0 16C0 24.837 16 42 16 42C16 42 32 24.837 32 16C32 7.163 24.837 0 16 0Z" fill="#3d2b1f"/><circle cx="16" cy="16" r="6" fill="#d4a373"/></svg>`,
         iconSize: [32, 42],
-        iconAnchor: [16, 42],
-        popupAnchor: [16, -21] // This anchors the popup center-right of the pin
+        iconAnchor: [16, 42]
     });
 
-    // --- 2. MAP INIT ---
     function init() {
-        map = L.map('map', { 
-            zoomControl: false,
-            closePopupOnClick: false // Prevents accidental closing
-        }).setView([10.776, 106.700], 13);
-        
+        map = L.map('map', { zoomControl: false }).setView([10.785, 106.695], 13);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { subdomains: 'abcd' }).addTo(map);
         
         loadData();
@@ -146,78 +163,97 @@
     }
 
     async function loadData() {
-        const res = await fetch('./cafes.json');
-        const data = await res.json();
-        cafes = data.filter(c => (c.district || '').toUpperCase().includes('HCM'));
-        renderMarkers();
+        try {
+            const res = await fetch('./cafes.json');
+            const data = await res.json();
+            cafes = data.filter(c => (c.district || '').toUpperCase().includes('HCM'));
+            renderMarkers();
+        } catch(e) { console.error("Data error"); }
     }
 
     function renderMarkers() {
         markers.forEach(m => map.removeLayer(m));
         markers = [];
-
         cafes.forEach((c) => {
             const m = L.marker([c.lat, c.lng], { icon: customIcon }).addTo(map);
-            m.on('click', (e) => {
-                L.DomEvent.stopPropagation(e); // Stop map from closing the popup
-                updatePopup(m, c);
+            m.on('click', () => {
+                selectedCafe = c;
+                updatePanel(c);
+                map.panTo([c.lat, c.lng], {animate: true});
+                if(window.innerWidth <= 900) document.getElementById('discovery-panel').classList.add('active');
             });
             markers.push(m);
         });
     }
 
-    // --- 3. THE DYNAMIC CONTENT ENGINE ---
-    function updatePopup(marker, cafe) {
-        let content = `<div class="pop-container">
-            <div class="pop-kicker">${mode === 'hem' ? '📍 Hẻm Discovery' : '🧪 Hạt Analytics'}</div>
-            <div class="pop-title">${cafe.name}</div>
-            <div class="pop-subtitle">${cafe.address}</div>`;
+    function updatePanel(c) {
+        const container = document.getElementById('panel-inner');
+        
+        let html = `
+            <div class="kicker">${mode === 'hem' ? '📍 Hẻm Discovery' : '🧪 Hạt Analytics'}</div>
+            <h1 class="cafe-title">${c.name}</h1>
+            <p class="cafe-address">${c.address}, ${c.ward}</p>
+        `;
 
         if (mode === 'hem') {
-            content += `
-                <div class="pop-data"><b>Vibe:</b> ${cafe.vibe}</div>
-                <div class="pop-section">
-                    <div class="pop-label">Alley Note</div>
-                    <div class="pop-data"><i>"${cafe.hem_note}"</i></div>
+            html += `
+                <div class="section-box">
+                    <div class="section-label">The Vibe</div>
+                    <div class="section-data">${c.vibe}</div>
+                    <p class="note-text">"${c.hem_note}"</p>
                 </div>
-                <div class="pop-section">
-                    <div class="pop-label">Why it Matters</div>
-                    <div class="pop-data">${cafe.why_it_matters}</div>
-                </div>`;
+                <div class="section-box">
+                    <div class="section-label">Why it Matters</div>
+                    <div class="section-data">${c.why_it_matters}</div>
+                </div>
+                <div class="section-box">
+                    <div class="section-label">Signature Order</div>
+                    <div class="section-data"><b>${c.signature_drink}</b></div>
+                </div>
+            `;
         } else {
-            content += `
-                <div class="pop-data"><b>Roaster:</b> ${cafe.roaster_type}</div>
-                <div class="pop-section">
-                    <div class="pop-label">Technical</div>
-                    <div class="pop-data"><b>Machine:</b> ${cafe.machine}<br><b>Beans:</b> ${cafe.beans}</div>
+            html += `
+                <div class="section-box">
+                    <div class="section-label">Extraction Gear</div>
+                    <div class="section-data">
+                        <b>Machine:</b> ${c.machine}<br>
+                        <b>Grinder:</b> ${c.grinder}<br>
+                        <b>Brewing:</b> ${c.brew_methods.join(', ')}
+                    </div>
                 </div>
-                <div class="pop-section">
-                    <div class="pop-label">Brew Logic</div>
-                    <div class="pop-data">${cafe.hat_note}</div>
-                </div>`;
+                <div class="section-box">
+                    <div class="section-label">Bean Profile</div>
+                    <div class="section-data">
+                        <b>Beans:</b> ${c.beans}<br>
+                        <b>Roast Style:</b> ${c.roast_style}<br>
+                        <b>Water TDS:</b> ${c.tds || '110ppm'}
+                    </div>
+                </div>
+                <div class="section-box">
+                    <div class="section-label">Roaster Focus</div>
+                    <div class="section-data">${c.roaster_type} • ${c.origin_focus}</div>
+                </div>
+            `;
         }
 
-        content += `
-            <div class="pop-section">
+        html += `
+            <div class="section-box">
+                <div class="section-label">Discovery Tags</div>
                 <div class="tag-cloud">
-                    ${cafe.tags.map(t => `<span class="tag-chip">${t}</span>`).join('')}
-                    <span class="tag-chip">${cafe.price_range}</span>
+                    ${c.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                    <span class="tag">${c.price_range}</span>
+                    <span class="tag">${c.work_friendly ? 'Work Friendly' : 'Chat Focus'}</span>
                 </div>
             </div>
-            <div class="pop-links">
-                <a href="${cafe.menu_url}" target="_blank" class="pop-link-btn">📖 Menu</a>
-                <a href="${cafe.google_maps_url}" target="_blank" class="pop-link-btn">🗺️ Maps</a>
+            <div class="action-links">
+                <a href="${c.menu_url}" target="_blank" class="link-btn">View Menu</a>
+                <a href="${c.social_url}" target="_blank" class="link-btn secondary">Instagram</a>
+                <a href="${c.google_maps_url}" target="_blank" class="link-btn secondary" style="grid-column: span 2;">Open in Google Maps</a>
             </div>
-        </div>`;
+        `;
 
-        marker.bindPopup(content, { 
-            closeButton: false,
-            className: 'leaflet-popup-side',
-            autoPan: true
-        }).openPopup();
-
-        // Slide map slightly so the side-popup is centered in space
-        map.panTo([cafe.lat, cafe.lng + 0.012], {animate: true});
+        container.innerHTML = html;
+        container.scrollTop = 0;
     }
 
     function setMode(m) {
@@ -225,13 +261,7 @@
         mode = m;
         document.getElementById('h1').classList.toggle('active', mode === 'hem');
         document.getElementById('h2').classList.toggle('active', mode === 'hat');
-        
-        // SEAMLESS UPDATE: If a popup is open, swap HTML content without closing
-        markers.forEach((m, index) => {
-            if (m.getPopup() && m.getPopup().isOpen()) {
-                updatePopup(m, cafes[index]);
-            }
-        });
+        if(selectedCafe) updatePanel(selectedCafe);
     }
 
     function syncAuthUI() {
