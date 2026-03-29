@@ -1,46 +1,217 @@
-<!-- Save as map.html -->
+<!-- 
+    PROJECT: Hạt & Hẻm (Bean & Alley)
+    AUTHOR: Nguyen Trong Tin at RMIT University
+    VERSION: 2026 Build (Optimized)
+    TECH STACK: Leaflet.js, MarkerCluster, CartoDB Voyager.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hạt & Hẻm | Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hạt & Hẻm | Explore Map</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <style>
         :root { --coffee: #3d2b1f; --cream: #fdfaf7; --accent: #d4a373; --white: #ffffff; }
-        body { margin: 0; font-family: 'Be Vietnam Pro', sans-serif; display: flex; flex-direction: column; height: 100vh; background: var(--cream); overflow: hidden; }
-        header { background: rgba(61, 43, 31, 0.98); color: white; padding: 0 5%; display: flex; justify-content: space-between; align-items: center; height: 70px; z-index: 10005; }
-        #map { flex: 1; width: 100%; z-index: 1; }
-        .controls { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 5px; border-radius: 50px; display: flex; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
-        .mode-btn { border: none; padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: 800; font-size: 0.7rem; color: #999; }
+        * { box-sizing: border-box; font-family: 'Be Vietnam Pro', sans-serif; }
+        body { margin: 0; display: flex; flex-direction: column; height: 100vh; background: var(--cream); overflow: hidden; }
+
+        /* Header UI */
+        header { flex-shrink:0; background: rgba(61, 43, 31, 0.98); backdrop-filter: blur(10px); color: white; padding: 0 5%; display: flex; justify-content: space-between; align-items: center; height: 70px; z-index: 10005; }
+        .logo { font-size: 1.2rem; font-weight: 800; text-decoration: none; color: white; }
+        nav.desktop-nav { display: flex; align-items: center; gap: 25px; }
+        nav.desktop-nav a { color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8; position: relative; }
+        nav.desktop-nav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: var(--accent); border-radius: 999px; }
+        .nav-btn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        /* Map & Controls */
+        #map { flex: 1; width: 100%; z-index: 1; background: #e5e3df; }
+        .controls { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 5px; border-radius: 50px; display: flex; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.05); }
+        .mode-btn { border: none; padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: 800; font-size: 0.75rem; color: #999; transition: 0.3s; background: transparent; }
         .mode-btn.active { background: var(--coffee); color: white; }
-        footer { background: var(--white); padding: 10px 5%; font-size: 9px; color: #8a7b6f; border-top: 1px solid #eee; text-align: center; }
+
+        /* Detail Panel (Sleek Drawer) */
+        .detail-panel { 
+            position: absolute; z-index: 1001; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            width: 90%; max-width: 400px; background: white; border-radius: 25px; 
+            box-shadow: 0 15px 45px rgba(0,0,0,0.2); padding: 25px; display: none; animation: slideUp 0.4s ease;
+        }
+        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        .detail-panel.visible { display: block; }
+        .detail-close { position: absolute; top: 15px; right: 15px; background: #f0f0f0; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: 800; }
+        
+        .popup-title { font-size: 1.2rem; font-weight: 800; color: var(--coffee); margin-bottom: 5px; }
+        .popup-meta { font-size: 0.75rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
+        .popup-text { font-size: 0.9rem; line-height: 1.6; color: #555; margin-bottom: 15px; }
+        .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag { background: #f6efe8; color: #7a5a3d; padding: 5px 12px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
+
+        /* City Jumps */
+        .city-jump { position: absolute; bottom: 100px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+        .jump-btn { background: white; border: none; padding: 12px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; font-size: 0.7rem; font-weight: 800; color: var(--coffee); }
+
+        footer { flex-shrink: 0; background: var(--white); padding: 12px 5%; font-size: 10px; color: #8a7b6f; border-top: 1px solid #eee; text-align: center; }
+
+        @media (max-width: 850px) {
+            nav.desktop-nav { display: none; }
+            .detail-panel { bottom: 20px; width: 95%; }
+        }
     </style>
 </head>
 <body>
-<header><a href="index.html" style="color:white; text-decoration:none; font-weight:800;">Hạt & Hẻm</a></header>
-<div class="controls">
-    <button id="h1" class="mode-btn active" onclick="setMode('hem')">Hẻm Mode</button>
-    <button id="h2" class="mode-btn" onclick="setMode('hat')">Hạt Mode</button>
-</div>
-<div id="map"></div>
-<footer>© 2026 Nguyen Trong Tin @ RMIT University • Static build</footer>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-    let map = L.map('map', {zoomControl: false}).setView([10.776, 106.700], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-    let mode = 'hem';
 
-    async function load() {
-        const res = await fetch('./cafes.json');
-        const data = await res.json();
-        data.filter(c => c.district.includes('HCM')).forEach(c => {
-            L.marker([c.lat, c.lng]).addTo(map).bindPopup(`<b>${c.name}</b><br>${mode === 'hem' ? c.vibe : c.machine}`);
+<header>
+    <a href="index.html" class="logo">Hạt & Hẻm</a>
+    <nav class="desktop-nav">
+        <a href="index.html">Decoder</a> <a href="map.html" class="current">Explore Map</a> <a href="passport.html">Passport</a>
+        <span class="auth-box"></span>
+    </nav>
+</header>
+
+<div class="controls">
+    <button id="h1" class="mode-btn active" onclick="setMode('hem')">Hẻm Mode (Vibe)</button>
+    <button id="h2" class="mode-btn" onclick="setMode('hat')">Hạt Mode (Tech)</button>
+</div>
+
+<div id="map"></div>
+
+<aside id="detailPanel" class="detail-panel">
+    <button class="detail-close" onclick="closePanel()">×</button>
+    <div id="panelContent"></div>
+</aside>
+
+<div class="city-jump">
+    <button class="jump-btn" onclick="flyTo([10.7745, 106.7026], 16)">District 1</button>
+    <button class="jump-btn" onclick="flyTo([10.7935, 106.7075], 16)">Binh Thanh</button>
+    <button class="jump-btn" onclick="flyTo([10.7825, 106.6880], 16)">District 3</button>
+</div>
+
+<footer>© 2026 Nguyen Trong Tin @ RMIT University • Digital Media Studio 4 Build</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script>
+    let map, markerCluster, mode = 'hem', cafeData = [];
+
+    // 1. Initialize Map Immediately (Concurrent Load)
+    function initMap() {
+        map = L.map('map', {
+            zoomControl: false,
+            preferCanvas: true, // Hardware Acceleration
+            maxBounds: [[10.6, 106.5], [10.9, 106.9]] // Constraint to HCMC
+        }).setView([10.776, 106.700], 13);
+
+        // Premium Carto Voyager Tiles (Lighter for faster load)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            subdomains: 'abcd',
+            attribution: '©OpenStreetMap contributors'
+        }).addTo(map);
+
+        markerCluster = L.markerClusterGroup({
+            maxClusterRadius: 40,
+            showCoverageOnHover: false,
+            spiderfyOnMaxZoom: true
+        });
+        map.addLayer(markerCluster);
+    }
+
+    // 2. Optimized Data Loader
+    async function loadData() {
+        try {
+            const res = await fetch('./cafes.json');
+            if(!res.ok) throw new Error("JSON not found");
+            const allData = await res.json();
+            
+            // Filter only HCM cafes
+            cafeData = allData.filter(c => (c.district || '').toUpperCase().includes('HCM'));
+            renderMarkers();
+        } catch (e) {
+            console.error("Data Load Error:", e);
+            // Fallback for demonstration if JSON is missing
+            cafeData = [{name: "Sample Cafe", lat: 10.776, lng: 106.700, vibe: "Hidden Gem", machine: "La Marzocco", beans: "Dalat Arabica", district: "District 1"}];
+            renderMarkers();
+        }
+    }
+
+    // 3. Render Engine
+    function renderMarkers() {
+        if (!markerCluster) return;
+        markerCluster.clearLayers();
+
+        cafeData.forEach(c => {
+            const m = L.marker([c.lat, c.lng]);
+            m.on('click', () => showDetails(c));
+            markerCluster.addLayer(m);
         });
     }
-    function setMode(m) { mode = m; document.getElementById('h1').classList.toggle('active', m==='hem'); document.getElementById('h2').classList.toggle('active', m==='hat'); }
-    window.onload = load;
+
+    function showDetails(c) {
+        const panel = document.getElementById('detailPanel');
+        const content = document.getElementById('panelContent');
+        
+        let html = `
+            <div class="popup-title">${c.name}</div>
+            <div class="popup-meta">${c.district}</div>
+        `;
+
+        if (mode === 'hem') {
+            html += `
+                <p class="popup-text"><b>Vibe:</b> ${c.vibe || 'Unique Alley Spirit'}<br><b>Story:</b> ${c.hem_note || 'A local specialty destination.'}</p>
+                <div class="tag-row">
+                    <span class="tag">${c.price_range || '$$'}</span>
+                    <span class="tag">${c.work_friendly ? 'Work-Friendly' : 'Chat-Focused'}</span>
+                </div>
+            `;
+        } else {
+            html += `
+                <p class="popup-text"><b>Machine:</b> ${c.machine || 'Specialty Setup'}<br><b>Roast Focus:</b> ${c.roast_style || 'Clean Modern'}<br><b>Origin:</b> ${c.origin_focus || 'Traceable Lots'}</p>
+                <div class="tag-row">
+                    <span class="tag">${c.tds || 'N/A'} TDS</span>
+                    <span class="tag">${c.roaster_type || 'Local Roaster'}</span>
+                </div>
+            `;
+        }
+
+        content.innerHTML = html;
+        panel.classList.add('visible');
+        map.panTo([c.lat - 0.005, c.lng], {animate: true}); // Center marker slightly above panel
+    }
+
+    function closePanel() {
+        document.getElementById('detailPanel').classList.remove('visible');
+    }
+
+    function setMode(m) {
+        mode = m;
+        document.getElementById('h1').classList.toggle('active', m === 'hem');
+        document.getElementById('h2').classList.toggle('active', m === 'hat');
+        closePanel();
+        renderMarkers();
+    }
+
+    function flyTo(coords, zoom) {
+        map.flyTo(coords, zoom, { animate: true, duration: 1.5 });
+    }
+
+    function syncAuthUI() {
+        const email = localStorage.getItem('uemail');
+        document.querySelectorAll('.auth-box').forEach(b => {
+            b.innerHTML = email ? 
+                `<button class="nav-btn" onclick="localStorage.clear(); location.reload();">Logout</button>` : 
+                `<button class="nav-btn" onclick="window.location.href='index.html'">Login</button>`;
+        });
+    }
+
+    // Startup
+    window.onload = () => {
+        initMap();
+        loadData();
+        syncAuthUI();
+    };
 </script>
 </body>
 </html>
