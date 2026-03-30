@@ -200,9 +200,11 @@
     async function ensureData() { if(!cafes.length) { try { const r = await fetch('./cafes.json'); cafes = await r.json(); } catch(e) { cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over"}]; } } }
 
     async function getAI() {
-        document.getElementById('quiz-flow').classList.remove('active'); document.getElementById('loading').classList.add('active');
+        document.getElementById('quiz-flow').classList.remove('active'); 
+        document.getElementById('loading').classList.add('active');
         await ensureData();
         
+        // 1. CALCULATE SCORES LOCALLY (This is your safety net)
         let finalScores = [4, 4, 4, 4, 4, 4];
         answers.forEach((ans, i) => {
             const t = quizPaths[path][i].traits[ans];
@@ -211,31 +213,51 @@
         });
         finalScores = finalScores.map(s => Math.min(10, s));
 
-        let resData = { story: `Your taste profile as a ${path} explorer reveals a preference for character and clarity. You value craftsmanship and roasters who respect the bean's origin.`, scores: finalScores, cafe: cafes[0].name, drink: cafes[0].signature_drink };
+        // 2. PREPARE FALLBACK STORY (In case of 429 Rate Limit)
+        const topTraits = [];
+        if (finalScores[0] > 6) topTraits.push("Floral");
+        if (finalScores[1] > 6) topTraits.push("Fruity");
+        if (finalScores[5] > 6) topTraits.push("Roasted");
+        
+        let fallbackStory = `As a ${path} explorer, your DNA reveals a preference for ${topTraits.join(' and ') || 'balanced'} profiles. You value the craftsmanship of roasters who respect the bean's origin and seek clarity in every cup.`;
 
+        let resData = { 
+            story: fallbackStory, 
+            scores: finalScores, 
+            cafe: cafes[0].name, 
+            drink: cafes[0].signature_drink 
+        };
+
+        // 3. TRY API (If 429 occurs, it jumps to 'catch')
         try {
-            const promptBody = {
-                contents: [{ parts: [{ text: `Task: Coffee personality story. Return JSON only: {"story": "90-word narrative about the user's ${path} coffee DNA", "scores": [6 integers 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. Answers: ${answers.join(',')}` }] }]
-            };
-            
             const resp = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(promptBody)
+                body: JSON.stringify({ 
+                    contents: [{ parts: [{ text: `JSON only: {"story": "90 words about user's ${path} coffee DNA", "scores": [6 ints 1-10], "cafe": "${cafes[0].name}", "drink": "Signature"}. Answers: ${answers.join(',')}` }] }] 
+                })
             });
 
             if (resp.ok) {
                 const d = await resp.json();
-                const clean = d.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
-                const p = JSON.parse(clean);
+                const cleanText = d.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+                const p = JSON.parse(cleanText);
                 resData.story = p.story || resData.story;
                 if(p.scores) resData.scores = p.scores;
+            } else if (resp.status === 429) {
+                console.warn("Rate limit reached. Using local logic engine for pitch stability.");
             }
-        } catch (e) { console.warn("AI logic bypassed. Using local engine."); }
+        } catch (e) { 
+            console.warn("AI logic bypassed. Using deterministic local engine."); 
+        }
 
-        localStorage.setItem('has_profile', 'true'); localStorage.setItem('p_story', resData.story);
-        localStorage.setItem('p_scores', JSON.stringify(resData.scores)); localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
+        // 4. SAVE & DISPLAY (Works regardless of API status)
+        localStorage.setItem('has_profile', 'true'); 
+        localStorage.setItem('p_story', resData.story);
+        localStorage.setItem('p_scores', JSON.stringify(resData.scores)); 
+        localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
         localStorage.setItem('matched_cafe', resData.cafe);
+        
         showResult(resData.story, resData.scores, resData.cafe, resData.drink);
     }
 
