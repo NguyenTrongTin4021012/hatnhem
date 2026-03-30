@@ -1,7 +1,7 @@
 <!-- 
     PROJECT: Hạt & Hẻm (Bean & Alley)
     AUTHOR: Nguyen Trong Tin at RMIT University
-    VERSION: 2026 Build (Unified Decoder + About)
+    VERSION: 2026 Final HD Build
     TECH STACK: HTML5, CSS3, JS, Chart.js, Gemini AI.
 -->
 <!DOCTYPE html>
@@ -18,7 +18,6 @@
         * { box-sizing: border-box; font-family: 'Be Vietnam Pro', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--cream); margin: 0; color: var(--coffee); overflow-x: hidden; }
 
-        /* Unified Header */
         header { 
             background: rgba(61, 43, 31, 0.98); backdrop-filter: blur(10px); color: white; 
             padding: 0 5%; display: flex; justify-content: space-between; align-items: center; 
@@ -31,9 +30,7 @@
         nav.desktop-nav a.current::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: var(--accent); border-radius: 999px; }
         .nav-btn { background: var(--accent); border: none; color: white; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
 
-        /* Main Layout */
         main { margin-top: 100px; padding: 0 5% 60px; display: flex; flex-direction: column; align-items: center; }
-        
         .eyebrow { display: inline-flex; padding: 8px 14px; border-radius: 999px; background: #f2e7da; color: #8a5f38; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
         .quiz-card { background: var(--white); padding: 40px; border-radius: 30px; box-shadow: var(--soft-shadow); width: 100%; max-width: 480px; position: relative; overflow: hidden; margin-bottom: 80px; }
         .progress-bar { position: absolute; top: 0; left: 0; height: 6px; background: var(--accent); width: 0%; transition: 0.4s; }
@@ -42,31 +39,23 @@
         .option-btn { display: block; width: 100%; padding: 20px; margin: 12px 0; border: 2px solid #f3f3f3; border-radius: 16px; cursor: pointer; background: white; font-weight: 600; text-align: center; color: var(--coffee); transition: 0.2s; font-size: 1rem; }
         .option-btn:hover { border-color: var(--accent); transform: scale(1.02); }
         .secondary-btn { border: 1px solid #e6ddd2; background: #fffaf5; color: var(--coffee); padding: 12px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        
         .status-chip { padding: 6px 12px; border-radius: 999px; background: #f6efe8; color: #7a5a3d; font-size: 0.7rem; font-weight: 700; }
         #result-text { font-size: 0.95rem; line-height: 1.7; background: #fffcf5; padding: 25px; border-radius: 20px; border-left: 6px solid var(--accent); margin-bottom: 20px; }
         .loading-ring { width: 42px; height: 42px; margin: 0 auto 16px; border-radius: 50%; border: 4px solid #efe5d9; border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* About Section (The Concept Pitch) */
         .about-section { width: 100%; max-width: 800px; padding: 60px 0; border-top: 1px solid #eee; }
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
         .about-card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #fcfcfc; }
         .about-card h3 { margin-top: 0; color: var(--coffee); font-size: 1.1rem; font-weight: 800; }
         .about-card p { font-size: 0.85rem; line-height: 1.6; color: #666; margin-bottom: 0; }
 
-        /* Modal */
         .modal { display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(26, 18, 12, 0.85); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 12vh auto; padding: 40px; width: 90%; max-width: 400px; border-radius: 30px; }
         .ans-input { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #eee; font-size: 1rem; margin-bottom: 15px; outline: none; }
 
         footer { padding: 40px 5% 60px; text-align: center; font-size: 11px; color: #8a7b6f; line-height: 1.8; opacity: 0.7; }
-        
-        @media (max-width: 850px) {
-            nav.desktop-nav { display: none; }
-            .about-grid { grid-template-columns: 1fr; }
-            .quiz-card { padding: 30px 22px; }
-        }
+        @media (max-width: 850px) { nav.desktop-nav { display: none; } .about-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -74,15 +63,12 @@
 <header>
     <a href="index.html" class="logo">Hạt & Hẻm</a>
     <nav class="desktop-nav">
-        <a href="index.html" class="current">Decoder</a> 
-        <a href="map.html">Explore Map</a> 
-        <a href="passport.html">Passport</a>
+        <a href="index.html" class="current">Decoder</a> <a href="map.html">Explore Map</a> <a href="passport.html">Passport</a>
         <span class="auth-box"></span>
     </nav>
 </header>
 
 <main>
-    <!-- Decoder Section -->
     <div style="text-align:center; padding-bottom: 40px;">
         <div class="eyebrow">Interactive MVP</div>
         <h1 style="margin:0; font-size: 2.5rem; font-weight: 800;">Find Your Coffee DNA</h1>
@@ -91,14 +77,12 @@
 
     <div class="quiz-card">
         <div class="progress-bar" id="progress-bar"></div>
-        
         <div id="step-0" class="step active">
             <h3 style="text-align:center; margin-bottom:25px;">Choose your level</h3>
             <button class="option-btn" onclick="startPath('A')">☕ Beginner</button>
             <button class="option-btn" onclick="startPath('B')">⚖️ Intermediate</button>
             <button class="option-btn" onclick="startPath('C')">🔬 Professional</button>
         </div>
-
         <div id="quiz-flow" class="step">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <span class="status-chip" id="path-label">Path</span>
@@ -106,16 +90,9 @@
             </div>
             <h3 id="question-text" style="text-align:center; margin-bottom: 25px;"></h3>
             <div id="options-container"></div>
-            <div style="margin-top:20px; text-align:center;">
-                <button id="back-btn" class="secondary-btn" onclick="goBack()" disabled>Back</button>
-            </div>
+            <div style="margin-top:20px; text-align:center;"><button id="back-btn" class="secondary-btn" onclick="goBack()" disabled>Back</button></div>
         </div>
-
-        <div id="loading" class="step" style="text-align:center; padding: 40px 0;">
-            <div class="loading-ring"></div>
-            <p style="font-weight:600; color:var(--accent);">AI performing palate analysis...</p>
-        </div>
-
+        <div id="loading" class="step" style="text-align:center; padding: 40px 0;"><div class="loading-ring"></div><p style="font-weight:600; color:var(--accent);">AI performing palate analysis...</p></div>
         <div id="result" class="step">
             <h2 style="text-align:center; margin-top:0;">Your DNA</h2>
             <div id="result-text"></div>
@@ -128,70 +105,56 @@
         </div>
     </div>
 
-    <!-- About / Concept Section -->
     <section class="about-section">
-        <div style="text-align: center; margin-bottom: 40px;">
-            <div class="eyebrow">Concept Presentation</div>
-            <h2 style="font-size: 2rem; font-weight: 800;">Specialty Coffee for the People</h2>
-            <p style="color:666; max-width:600px; margin:15px auto;">Hạt & Hẻm addresses the gap between technical roasting science and local hidden discovery.</p>
-        </div>
-
+        <div style="text-align: center; margin-bottom: 40px;"><div class="eyebrow">Project Concept</div><h2 style="font-size: 2rem; font-weight: 800;">Specialty Coffee for the People</h2></div>
         <div class="about-grid">
-            <div class="about-card">
-                <h3>Authentic Problem</h3>
-                <p>Specialty coffee menus are technical and intimidating (Hạt). Hidden roasteries are hard to find (Hẻm). We remove the "Bad Order" risk by matching DNA to roast profiles.</p>
-            </div>
-            <div class="about-card">
-                <h3>The MVP Strategy</h3>
-                <p>A high-performance web app using Gemini AI as a <b>Logic Engine</b> rather than just a chatbot. It translates simple cravings into technical roasting metrics.</p>
-            </div>
-            <div class="about-card">
-                <h3>Visual Language</h3>
-                <p>Using <b>Chart.js</b> to visualize the "Coffee DNA" makes technical data accessible. The <b>Leaflet</b> map provides a vibe-based journey through HCMC.</p>
-            </div>
-            <div class="about-card">
-                <h3>Technical Moat</h3>
-                <p>Deterministic local scoring ensures the app works even if the AI fails. The data-driven pairing logic is proprietary and district-specific.</p>
-            </div>
+            <div class="about-card"><h3>Authentic Problem</h3><p>Specialty coffee is technical and intimidating (Hạt). Hidden roasteries are hard to find (Hẻm). We remove the "Bad Order" risk by matching DNA to roast profiles.</p></div>
+            <div class="about-card"><h3>The MVP Strategy</h3><p>A high-performance web app using Gemini AI as a <b>Logic Engine</b>. It translates simple cravings into technical roasting metrics.</p></div>
+            <div class="about-card"><h3>Visual Language</h3><p>Using <b>Chart.js</b> to visualize the "Coffee DNA" makes technical data accessible. The <b>Leaflet</b> map provides a curated journey through HCMC.</p></div>
+            <div class="about-card"><h3>Technical Moat</h3><p>Deterministic local scoring ensures the app works even if the AI fails. The data-driven pairing logic is proprietary and district-specific.</p></div>
         </div>
     </section>
 </main>
 
-<footer>
-    <p>© 2026 Nguyen Trong Tin @ RMIT University • Digital Media Studio 4 Build</p>
-</footer>
+<footer><p>© 2026 Nguyen Trong Tin @ RMIT University • Digital Media Studio 4 Build</p></footer>
 
-<!-- Login Modal -->
 <div id="loginModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0;">Explorer Login</h2>
-        <input type="email" id="u_email" class="ans-input" placeholder="Your Email">
+        <p id="auth-msg" style="font-size:0.85rem; color:#666; margin-bottom:20px;">Enter your credentials to access your Passport.</p>
+        <input type="email" id="u_email" class="ans-input" placeholder="Email Address">
+        <input type="password" id="u_pass" class="ans-input" placeholder="Password">
         <button class="nav-btn" style="width:100%; padding:18px;" onclick="submitAuth()">Continue</button>
         <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:#999; cursor:pointer;">Cancel</button>
     </div>
 </div>
 
 <script>
-    // --- AUTH & CONFIG ---
     const GEMINI_API_KEY = 'AIzaSyC_cDMstZ1MtHfMJ-1JlCXIXgVPY3REDLw';
-    // FIXED STABLE ENDPOINT
     const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
     
+    // Auth logic
+    function openLogin() { document.getElementById('loginModal').style.display = 'block'; }
+    function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
     function syncAuthUI() {
         const email = localStorage.getItem('uemail');
         document.querySelectorAll('.auth-box').forEach(b => {
-            b.innerHTML = email ? `<button class="nav-btn" onclick="localStorage.clear(); location.reload();">Logout</button>` : `<button class="nav-btn" onclick="document.getElementById('loginModal').style.display='block'">Login</button>`;
+            b.innerHTML = email ? `<button class="nav-btn" onclick="logout()">Logout</button>` : `<button class="nav-btn" onclick="openLogin()">Login</button>`;
         });
     }
-
     function submitAuth() {
-        const email = document.getElementById('u_email').value;
-        if(email.includes('@')) { localStorage.setItem('uid', 'user_1'); localStorage.setItem('uemail', email); location.reload(); }
+        const email = document.getElementById('u_email').value.trim();
+        const pass = document.getElementById('u_pass').value.trim();
+        const msg = document.getElementById('auth-msg');
+        if (!email.includes('@') || pass.length < 3) { msg.innerText = "Check your email/password (min 3 chars)."; return; }
+        const accounts = JSON.parse(localStorage.getItem('accounts') || '{}');
+        if (accounts[email] && accounts[email] !== pass) { msg.innerText = "Incorrect password."; return; }
+        accounts[email] = pass; localStorage.setItem('accounts', JSON.stringify(accounts));
+        localStorage.setItem('uid', 'user_1'); localStorage.setItem('uemail', email); location.reload();
     }
+    function logout() { localStorage.removeItem('uid'); localStorage.removeItem('uemail'); localStorage.removeItem('has_profile'); location.reload(); }
 
-    function closeModal() { document.getElementById('loginModal').style.display = 'none'; }
-
-    // --- QUIZ DATA ---
+    // Quiz paths
     const quizPaths = {
         A: [
             { q: "Morning craving?", a: "Sweet", b: "Savory", c: "Black coffee only", traits: { "Sweet": { floral: 1, fruity: 1, sweet: 2 }, "Savory": { nutty: 2, roasted: 1 }, "Black coffee only": { roasted: 2, nutty: 1, sour: 1 } } },
@@ -199,121 +162,74 @@
             { q: "Texture?", a: "Tea-like", b: "Milky", c: "Syrupy", traits: { "Tea-like": { floral: 2, fruity: 1, sour: 1 }, "Milky": { sweet: 1, nutty: 2, roasted: 1 }, "Syrupy": { sweet: 1, roasted: 2, nutty: 1 } } },
             { q: "Snack pairing?", a: "Nuts", b: "Cocoa", c: "Citrus pastry", traits: { "Nuts": { nutty: 3, roasted: 1 }, "Cocoa": { sweet: 1, nutty: 1, roasted: 3 }, "Citrus pastry": { floral: 1, fruity: 2, sour: 1 } } },
             { q: "Room mood?", a: "Bright", b: "Cozy", c: "Minimal and focused", traits: { "Bright": { floral: 2, fruity: 2, sour: 1 }, "Cozy": { sweet: 1, nutty: 2, roasted: 2 }, "Minimal and focused": { floral: 1, sour: 1, roasted: 1 } } },
-            { q: "Energy goal?", a: "Gentle", b: "Kick", c: "Long steady session", traits: { "Gentle": { floral: 1, fruity: 1, sweet: 1 }, "Kick": { roasted: 2, sour: 1, nutty: 1 }, "Long steady session": { sweet: 1, nutty: 1, fruity: 1 } } }
+            { q: "Energy goal?", a: "Gentle", b: "Kick", c: "Long session", traits: { "Gentle": { floral: 1, fruity: 1, sweet: 1 }, "Kick": { roasted: 2, sour: 1, nutty: 1 }, "Long session": { sweet: 1, nutty: 1, fruity: 1 } } }
         ],
         B: [
-            { q: "Roast style?", a: "Light-medium", b: "Medium-dark", c: "Omni roast", traits: { "Light-medium": { floral: 2, fruity: 2, sour: 1 }, "Medium-dark": { sweet: 1, nutty: 2, roasted: 2 }, "Omni roast": { sweet: 2, fruity: 1, nutty: 1 } } },
-            { q: "Acidity?", a: "Citric", b: "Chocolatey", c: "Winey", traits: { "Citric": { floral: 1, fruity: 2, sour: 2 }, "Chocolatey": { sweet: 1, nutty: 2, roasted: 1 }, "Winey": { fruity: 2, sweet: 2, sour: 1 } } },
-            { q: "Method?", a: "Filter", b: "Espresso", c: "Milk drinks", traits: { "Filter": { floral: 2, fruity: 1, sour: 1 }, "Espresso": { sweet: 1, nutty: 1, roasted: 2 }, "Milk drinks": { sweet: 2, roasted: 1, nutty: 1 } } },
-            { q: "Mouthfeel?", a: "Silky", b: "Dense", c: "Creamy", traits: { "Silky": { floral: 1, fruity: 1, sour: 1 }, "Dense": { sweet: 1, nutty: 2, roasted: 2 }, "Creamy": { sweet: 2, nutty: 1, roasted: 1 } } },
-            { q: "Process?", a: "Washed", b: "Natural", c: "Honey", traits: { "Washed": { floral: 2, fruity: 1, sour: 1 }, "Natural": { fruity: 2, sweet: 2, roasted: 1 }, "Honey": { sweet: 2, fruity: 1, nutty: 1 } } },
-            { q: "Optimization?", a: "Balance", b: "Intensity", c: "Terroir", traits: { "Balance": { sweet: 2, fruity: 1, nutty: 1 }, "Intensity": { roasted: 2, sour: 1, nutty: 1 }, "Terroir": { floral: 2, fruity: 1, sour: 1 } } }
+            { q: "Roast preference?", a: "Light", b: "Medium", c: "Dark", traits: { "Light": { floral: 2, fruity: 2 }, "Medium": { sweet: 2, nutty: 1 }, "Dark": { roasted: 2, nutty: 1 } } },
+            { q: "Acidity focus?", a: "Citric", b: "Malic", c: "Low", traits: { "Citric": { sour: 2, fruity: 1 }, "Malic": { sweet: 1, fruity: 1 }, "Low": { roasted: 1, nutty: 1 } } },
+            { q: "Body target?", a: "Silky", b: "Tea-like", c: "Syrupy", traits: { "Silky": { floral: 1, sweet: 1 }, "Tea-like": { floral: 2, sour: 1 }, "Syrupy": { roasted: 2, nutty: 1 } } },
+            { q: "Processing?", a: "Washed", b: "Natural", c: "Honey", traits: { "Washed": { floral: 2, sour: 1 }, "Natural": { fruity: 2, sweet: 1 }, "Honey": { sweet: 2, nutty: 1 } } },
+            { q: "Brew method?", a: "V60", b: "Espresso", c: "Aeropress", traits: { "V60": { floral: 1, sour: 1 }, "Espresso": { sweet: 1, roasted: 1 }, "Aeropress": { fruity: 1, nutty: 1 } } },
+            { q: "Aftertaste?", a: "Clean", b: "Lingering", c: "Chocolatey", traits: { "Clean": { floral: 1, sour: 1 }, "Lingering": { sweet: 1, fruity: 1 }, "Chocolatey": { roasted: 2, nutty: 1 } } }
         ],
         C: [
-            { q: "Development?", a: "Short", b: "Long", c: "Moderate", traits: { "Short": { floral: 2, fruity: 2, sour: 1 }, "Long": { sweet: 1, nutty: 2, roasted: 2 }, "Moderate": { sweet: 2, fruity: 1, nutty: 1 } } },
-            { q: "Target?", a: "High-acid", b: "High-body", c: "Integrated", traits: { "High-acid": { floral: 1, fruity: 2, sour: 2 }, "High-body": { sweet: 1, nutty: 2, roasted: 1 }, "Integrated": { sweet: 2, fruity: 1, sour: 1 } } },
-            { q: "Brew?", a: "Fast-flow", b: "Tighter", c: "Turbo", traits: { "Fast-flow": { floral: 2, fruity: 1, sour: 1 }, "Tighter": { sweet: 1, nutty: 1, roasted: 2 }, "Turbo": { fruity: 1, sweet: 1, sour: 2 } } },
-            { q: "Tactile?", a: "Clarity", b: "Heavy", c: "Velvety", traits: { "Clarity": { floral: 1, fruity: 1, sour: 2 }, "Heavy": { sweet: 1, nutty: 2, roasted: 2 }, "Velvety": { sweet: 2, fruity: 1, nutty: 1 } } },
-            { q: "Bias?", a: "Elevation", b: "Anaerobic", c: "Experimental", traits: { "Elevation": { floral: 2, fruity: 1, sour: 1 }, "Anaerobic": { fruity: 2, sweet: 2, roasted: 1 }, "Experimental": { fruity: 2, sour: 1, sweet: 1 } } },
-            { q: "Priority?", a: "Sweetness", b: "Texture", c: "Articulation", traits: { "Sweetness": { sweet: 2, fruity: 1, floral: 1 }, "Texture": { roasted: 2, nutty: 1, sour: 1 }, "Articulation": { sour: 2, floral: 1, fruity: 1 } } }
+            { q: "TDS Target?", a: "1.2 - 1.3", b: "1.4+", c: "0.8 - 1.1", traits: { "1.2 - 1.3": { sweet: 2, fruity: 1 }, "1.4+": { roasted: 2, nutty: 1 }, "0.8 - 1.1": { floral: 2, sour: 1 } } },
+            { q: "EY Goal?", a: "High (22%)", b: "Standard (20%)", c: "Lower (18%)", traits: { "High (22%)": { sweet: 1, fruity: 2 }, "Standard (20%)": { sweet: 2, nutty: 1 }, "Lower (18%)": { floral: 1, sour: 2 } } },
+            { q: "Water profile?", a: "High Mag", b: "High Cal", c: "Soft", traits: { "High Mag": { fruity: 2, sour: 1 }, "High Cal": { sweet: 2, roasted: 1 }, "Soft": { floral: 2, fruity: 1 } } },
+            { q: "Roast dev?", a: "Short", b: "Moderate", c: "Long", traits: { "Short": { floral: 2, sour: 1 }, "Moderate": { sweet: 2, fruity: 1 }, "Long": { roasted: 2, nutty: 1 } } },
+            { q: "Origin bias?", a: "East Africa", b: "Americas", c: "S.E. Asia", traits: { "East Africa": { floral: 2, sour: 1 }, "Americas": { nutty: 1, sweet: 2 }, "S.E. Asia": { roasted: 1, nutty: 2 } } },
+            { q: "Machine?", a: "Slayer", b: "Modbar", c: "Manual", traits: { "Slayer": { sweet: 2, roasted: 1 }, "Modbar": { floral: 1, fruity: 2 }, "Manual": { sour: 1, nutty: 1 } } }
         ]
     };
 
-    let path = '', step = 0, answers = [], chartInstance = null, cafes = [];
+    let path = '', step = 0, answers = [], cafes = [];
 
-    // --- QUIZ FUNCTIONS ---
     function startPath(p) { path = p; step = 0; answers = []; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
-    
     function renderQuestion() {
         const q = quizPaths[path][step];
         document.getElementById('progress-bar').style.width = (step/6*100) + '%';
         document.getElementById('question-text').innerText = q.q;
         document.getElementById('options-container').innerHTML = [q.a, q.b, q.c].map(o => `<button class="option-btn" onclick="selectOption('${o}')">${o}</button>`).join('');
-        document.getElementById('path-label').innerText = path === 'A' ? 'Beginner' : path === 'B' ? 'Intermediate' : 'Professional';
-        document.getElementById('step-label').innerText = `Question ${step+1} of 6`;
+        document.getElementById('path-label').innerText = path; document.getElementById('step-label').innerText = `${step+1} of 6`;
         document.getElementById('back-btn').disabled = step === 0;
     }
-
     function selectOption(o) { answers.push(o); step++; if(step<6) renderQuestion(); else getAI(); }
     function goBack() { if(step > 0) { step--; answers.pop(); renderQuestion(); } }
 
-    async function ensureData() { 
-        if(cafes.length > 0) return;
-        try { const r = await fetch('./cafes.json'); cafes = await r.json(); } catch (e) { cafes = [{name: "Every Half Coffee", signature_drink: "V60 Pour Over"}]; }
-    }
+    async function ensureData() { if(!cafes.length) { const r = await fetch('./cafes.json'); cafes = await r.json(); } }
 
     async function getAI() {
-        document.getElementById('quiz-flow').classList.remove('active');
-        document.getElementById('loading').classList.add('active');
+        document.getElementById('quiz-flow').classList.remove('active'); document.getElementById('loading').classList.add('active');
         await ensureData();
-        
-        // Local deterministic scoring logic
-        let finalScores = [4, 4, 4, 4, 4, 4];
+        let scores = [4,4,4,4,4,4]; // Floral, Fruity, Sour, Sweet, Nutty, Roasted
         answers.forEach((ans, i) => {
-            const traits = quizPaths[path][i].traits[ans];
-            if(traits.floral) finalScores[0] += traits.floral;
-            if(traits.fruity) finalScores[1] += traits.fruity;
-            if(traits.sour) finalScores[2] += traits.sour;
-            if(traits.sweet) finalScores[3] += traits.sweet;
-            if(traits.nutty) finalScores[4] += traits.nutty;
-            if(traits.roasted) finalScores[5] += traits.roasted;
+            const t = quizPaths[path][i].traits[ans];
+            if(t.floral) scores[0]+=t.floral; if(t.fruity) scores[1]+=t.fruity; if(t.sour) scores[2]+=t.sour;
+            if(t.sweet) scores[3]+=t.sweet; if(t.nutty) scores[4]+=t.nutty; if(t.roasted) scores[5]+=t.roasted;
         });
-        finalScores = finalScores.map(s => Math.min(10, s));
-
-        let resData = {
-            story: `Your taste profile as a ${path === 'A' ? 'Beginner' : path === 'B' ? 'Intermediate' : 'Professional'} explorer reveals a preference for character and clarity. You value craftsmanship and roasters who respect the bean's origin.`,
-            scores: finalScores,
-            cafe: cafes[0].name,
-            drink: cafes[0].signature_drink
-        };
-
+        scores = scores.map(s => Math.min(10, s));
+        
+        let resData = { story: `As a ${path} explorer, your DNA shows a refined palate. You seek clarity and technical excellence in every cup.`, scores: scores, cafe: cafes[0].name, drink: cafes[0].signature_drink };
+        
         try {
-            const promptBody = {
-                contents: [{ parts: [{ text: `Task: Coffee Personality Decoder. Return JSON only: {"story": "A 90-word narrative about the user's ${path} coffee palate based on their preferences", "scores": [6 integers 1-10], "cafe": "${cafes[0].name}", "drink": "${cafes[0].signature_drink}"}. User answers: ${answers.join(',')}` }] }]
-            };
-            
-            const resp = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(promptBody)
-            });
+            const resp = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: `JSON only: {"story": "90 words about user's ${path} coffee DNA", "scores": [6 ints 1-10], "cafe": "${cafes[0].name}", "drink": "Signature"}. Answers: ${answers.join(',')}` }] }] }) });
+            if (resp.ok) { const d = await resp.json(); const txt = d.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim(); const p = JSON.parse(txt); resData.story = p.story || resData.story; }
+        } catch (e) { console.warn("AI offline."); }
 
-            if (resp.ok) {
-                const data = await resp.json();
-                const cleanText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
-                const parsed = JSON.parse(cleanText);
-                resData.story = parsed.story || resData.story;
-                resData.scores = parsed.scores || resData.scores;
-            }
-        } catch (e) { console.warn("AI logic bypassed. Using local engine."); }
-
-        localStorage.setItem('has_profile', 'true');
-        localStorage.setItem('p_story', resData.story);
-        localStorage.setItem('p_scores', JSON.stringify(resData.scores));
-        localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
+        localStorage.setItem('has_profile', 'true'); localStorage.setItem('p_story', resData.story);
+        localStorage.setItem('p_scores', JSON.stringify(resData.scores)); localStorage.setItem('p_recs', JSON.stringify({cafe: resData.cafe, drink: resData.drink}));
         localStorage.setItem('matched_cafe', resData.cafe);
-
         showResult(resData.story, resData.scores, resData.cafe, resData.drink);
     }
 
     function showResult(story, scores, name, drink) {
-        document.getElementById('loading').classList.remove('active');
-        document.getElementById('result').classList.add('active');
-        document.getElementById('result-text').innerHTML = `${story}<div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;"><b>Recommended Match: ${name}</b><br><small>${drink}</small></div>`;
-        
-        if (chartInstance) chartInstance.destroy();
-        chartInstance = new Chart(document.getElementById('palateChart'), {
-            type: 'radar',
-            data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 2 }] },
-            options: { scales: { r: { suggestedMax: 10, ticks: { display: false } } }, plugins: { legend: { display: false } } }
-        });
+        document.getElementById('loading').classList.remove('active'); document.getElementById('result').classList.add('active');
+        document.getElementById('result-text').innerHTML = `${story}<div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;"><b>Match: ${name}</b><br><small>${drink}</small></div>`;
+        new Chart(document.getElementById('palateChart'), { type: 'radar', data: { labels: ["Floral", "Fruity", "Sour", "Sweet", "Nutty", "Roasted"], datasets: [{ data: scores, backgroundColor: 'rgba(212, 163, 115, 0.3)', borderColor: '#3d2b1f', borderWidth: 2 }] }, options: { scales: { r: { suggestedMax: 10, ticks: { display: false } } }, plugins: { legend: { display: false } } } });
     }
 
     window.onload = () => { syncAuthUI(); ensureData(); };
-
-    document.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter' && document.getElementById('loginModal').style.display === 'block') submitAuth();
-    });
+    document.addEventListener('keydown', (e) => { if(e.key === 'Enter' && document.getElementById('loginModal').style.display === 'block') submitAuth(); });
 </script>
 </body>
 </html>
