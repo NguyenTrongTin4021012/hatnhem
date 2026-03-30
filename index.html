@@ -154,7 +154,7 @@
     }
     function logout() { localStorage.removeItem('uid'); localStorage.removeItem('uemail'); localStorage.removeItem('has_profile'); location.reload(); }
 
-    // Quiz paths
+    // Quiz Data
     const quizPaths = {
         A: [
             { q: "Morning craving?", a: "Sweet", b: "Savory", c: "Black coffee only", traits: { "Sweet": { floral: 1, fruity: 1, sweet: 2 }, "Savory": { nutty: 2, roasted: 1 }, "Black coffee only": { roasted: 2, nutty: 1, sour: 1 } } },
@@ -184,24 +184,52 @@
 
     let path = '', step = 0, answers = [], cafes = [];
 
-    function startPath(p) { path = p; step = 0; answers = []; document.getElementById('step-0').classList.remove('active'); document.getElementById('quiz-flow').classList.add('active'); renderQuestion(); }
+    function startPath(p) { 
+        path = p; 
+        step = 0; 
+        answers = []; 
+        document.getElementById('step-0').classList.remove('active'); 
+        document.getElementById('quiz-flow').classList.add('active'); 
+        renderQuestion(); 
+    }
+
     function renderQuestion() {
         const q = quizPaths[path][step];
         document.getElementById('progress-bar').style.width = (step/6*100) + '%';
         document.getElementById('question-text').innerText = q.q;
         document.getElementById('options-container').innerHTML = [q.a, q.b, q.c].map(o => `<button class="option-btn" onclick="selectOption('${o}')">${o}</button>`).join('');
-        document.getElementById('path-label').innerText = path; document.getElementById('step-label').innerText = `${step+1} of 6`;
-        document.getElementById('back-btn').disabled = step === 0;
+        document.getElementById('path-label').innerText = path; 
+        document.getElementById('step-label').innerText = `Question ${step+1} of 6`;
+        
+        // Removed the "disabled" logic so the button is always clickable
+        document.getElementById('back-btn').disabled = false; 
     }
+
     function selectOption(o) { answers.push(o); step++; if(step<6) renderQuestion(); else getAI(); }
-    function goBack() { if(step > 0) { step--; answers.pop(); renderQuestion(); } }
+
+    // FIXED BACK BUTTON LOGIC
+    function goBack() { 
+        if (step > 0) { 
+            step--; 
+            answers.pop(); 
+            renderQuestion(); 
+        } else {
+            // Return to Path Selection screen
+            document.getElementById('quiz-flow').classList.remove('active');
+            document.getElementById('step-0').classList.add('active');
+            path = '';
+            step = 0;
+            answers = [];
+            document.getElementById('progress-bar').style.width = '0%';
+        }
+    }
 
     async function ensureData() { if(!cafes.length) { const r = await fetch('./cafes.json'); cafes = await r.json(); } }
 
     async function getAI() {
         document.getElementById('quiz-flow').classList.remove('active'); document.getElementById('loading').classList.add('active');
         await ensureData();
-        let scores = [4,4,4,4,4,4]; // Floral, Fruity, Sour, Sweet, Nutty, Roasted
+        let scores = [4,4,4,4,4,4]; 
         answers.forEach((ans, i) => {
             const t = quizPaths[path][i].traits[ans];
             if(t.floral) scores[0]+=t.floral; if(t.fruity) scores[1]+=t.fruity; if(t.sour) scores[2]+=t.sour;
