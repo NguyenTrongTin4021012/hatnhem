@@ -137,21 +137,22 @@
 
         // 1. Auth Sync
         document.querySelectorAll('.auth-box').forEach(b => {
-            b.innerHTML = email ? `<button class="nav-btn" onclick="logout()">Logout</button>` : `<button class="nav-btn" onclick="window.location.href='index.html'">Login</button>`;
+            b.innerHTML = email ? 
+                `<button class="nav-btn" onclick="logout()">Logout</button>` : 
+                `<button class="nav-btn" onclick="window.location.href='index.html'">Login</button>`;
         });
 
         if (hasProfile === 'true' && email) {
             document.getElementById('p-active').style.display = 'grid';
+            document.getElementById('p-empty').style.display = 'none'; // Ensure empty is hidden
             document.getElementById('u-name').innerText = email.split('@')[0];
             document.getElementById('p-story').innerText = localStorage.getItem('p_story') || "Discovering the soul of Saigon coffee.";
             
-            // Safety parsing for recommendations
             try {
-                const recs = JSON.parse(localStorage.getItem('p_recs') || '{"cafe":"Every Half","drink":"Pour Over"}');
-                document.getElementById('p-recs').innerText = `${recs.cafe} • ${recs.drink}`;
+                const recs = JSON.parse(localStorage.getItem('p_recs') || '{}');
+                document.getElementById('p-recs').innerText = recs.cafe ? `${recs.cafe} • ${recs.drink}` : "Take the quiz to find a match";
             } catch(e) { console.error("Recs parse error"); }
 
-            // Radar Chart Render
             try {
                 const scores = JSON.parse(localStorage.getItem('p_scores') || '[5,5,5,5,5,5]');
                 new Chart(document.getElementById('p-chart'), {
@@ -175,19 +176,22 @@
                 });
             } catch(e) { console.error("Chart parse error"); }
         } else {
+            document.getElementById('p-active').style.display = 'none';
             document.getElementById('p-empty').style.display = 'block';
         }
 
-        // 2. Generate Stamp Grid from cafes.json
+        // 2. Generate Stamp Grid (REAL LOGIC)
         try {
             const res = await fetch('./cafes.json');
             const cafes = await res.json();
             const grid = document.getElementById('stamp-grid');
+            grid.innerHTML = ""; // Clear existing
             
-            // For Demo: we highlight the matched cafe + 2 random ones to show "progress"
             let collectedCount = 0;
-            cafes.forEach((c, i) => {
-                const isCollected = c.name === matchedCafe || i === 0 || i === 4; 
+            cafes.forEach((c) => {
+                // FIXED: Only collected if there is a profile AND it matches the real matched_cafe
+                const isCollected = (hasProfile === 'true' && c.name === matchedCafe);
+                
                 if(isCollected) collectedCount++;
 
                 grid.innerHTML += `
@@ -198,14 +202,19 @@
                     </div>
                 `;
             });
-            document.getElementById('stat-stamps').innerText = `${collectedCount} Stamps Collected`;
+            
+            const stampLabel = document.getElementById('stat-stamps');
+            if(stampLabel) stampLabel.innerText = `${collectedCount} Stamps Collected`;
 
         } catch(e) {
             console.error("Grid load error", e);
         }
     }
 
-    function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+    function logout() { 
+        localStorage.clear(); 
+        window.location.href = 'passport.html'; // Refresh to show empty state
+    }
 
     window.onload = loadPassport;
 </script>
